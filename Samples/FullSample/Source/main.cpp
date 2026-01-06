@@ -922,7 +922,6 @@ public:
             m_sunLight->irradiance = 0.f;
         }
         
-        m_ui.enableDenoiser = false;
         uint32_t denoiserMode = DENOISER_MODE_OFF;
 
         m_commandList->open();
@@ -1169,16 +1168,6 @@ public:
             uint32_t inputBufferIndex = 0;
             switch(m_ui.visualizationMode)
             {
-            case VIS_MODE_DENOISED_DIFFUSE:
-            case VIS_MODE_DENOISED_SPECULAR:
-                haveSignal = m_ui.enableDenoiser;
-                break;
-
-            case VIS_MODE_DIFFUSE_CONFIDENCE:
-            case VIS_MODE_SPECULAR_CONFIDENCE:
-                haveSignal = m_ui.lightingSettings.enableGradients && m_ui.enableDenoiser;
-                break;
-
             case VIS_MODE_RESERVOIR_WEIGHT:
             case VIS_MODE_RESERVOIR_M:
                 inputBufferIndex = m_lightingPasses->GetOutputReservoirBufferIndex();

@@ -133,7 +133,6 @@ struct UIData
     float environmentIntensityBias = 0.f;
     float environmentRotation = 0.f;
     
-    bool enableDenoiser = true;
     float noiseMix = 0.33f;
     float noiseClampLow = 0.5f;
     float noiseClampHigh = 2.0f;
