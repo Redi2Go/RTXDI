@@ -59,10 +59,6 @@ UIData::UIData()
     restirGI.finalShadingParams = rtxdi::GetDefaultReSTIRGIFinalShadingParams();
 
     ApplyPreset();
-
-#ifdef WITH_NRD
-    SetDefaultDenoiserSettings();
-#endif
 }
 
 void UIData::ApplyPreset()
@@ -887,8 +883,6 @@ void UserInterface::PostProcessSettings()
         ImGui::Checkbox("Tone mapping", (bool*)&m_ui.enableToneMapping);
         ImGui::SameLine(160.f);
         ImGui::SliderFloat("Exposure bias", &m_ui.exposureBias, -4.f, 2.f);
-
-        ImGui::Checkbox("Bloom", (bool*)&m_ui.enableBloom);
 
         ImGui::Separator();
         ImGui::PushItemWidth(150.f);

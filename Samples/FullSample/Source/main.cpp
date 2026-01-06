@@ -12,13 +12,12 @@
 #include <Rtxdi/ImportanceSamplingContext.h>
 
 #include <donut/render/ToneMappingPasses.h>
-#include <donut/render/TemporalAntiAliasingPass.h>
 #include <donut/app/ApplicationBase.h>
 #include <donut/app/Camera.h>
+#include <donut/engine/BindingCache.h>
 #include <donut/engine/ShaderFactory.h>
 #include <donut/engine/CommonRenderPasses.h>
 #include <donut/engine/TextureCache.h>
-#include <donut/render/BloomPass.h>
 #include <donut/render/SkyPass.h>
 #include <donut/engine/Scene.h>
 #include <donut/engine/FramebufferFactory.h>
@@ -402,10 +401,6 @@ public:
         m_rtxdiResources = nullptr;
         m_temporalAntiAliasingPass = nullptr;
         m_toneMappingPass = nullptr;
-        m_bloomPass = nullptr;
-#if WITH_NRD
-        m_nrd = nullptr;
-#endif
     }
 
     void LoadEnvironmentMap()
@@ -652,11 +647,6 @@ public:
             render::ToneMappingPass::CreateParameters toneMappingParams;
             m_toneMappingPass = std::make_unique<render::ToneMappingPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_renderTargets->LdrFramebuffer, m_upscaledView, toneMappingParams);
             exposureResetRequired = true;
-        }
-
-        if (!m_bloomPass)
-        {
-            m_bloomPass = std::make_unique<render::BloomPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_renderTargets->ResolvedFramebuffer, m_upscaledView);
         }
     }
 
@@ -1143,13 +1133,6 @@ public:
 
         Resolve(m_commandList, accumulationWeight);
 
-        if (m_ui.enableBloom)
-        {
-            nvrhi::ITexture* bloomSource = m_renderTargets->ResolvedColor;
-
-            m_bloomPass->Render(m_commandList, m_renderTargets->ResolvedFramebuffer, m_upscaledView, bloomSource, 32.f, 0.005f);
-        }
-
         // Reference image functionality:
         {
             // When the camera is moved, discard the previously stored image, if any, and disable its display.
@@ -1322,7 +1305,6 @@ private:
     std::shared_ptr<engine::DescriptorTableManager> m_descriptorTableManager;
     std::unique_ptr<render::ToneMappingPass> m_toneMappingPass;
     std::unique_ptr<render::TemporalAntiAliasingPass> m_temporalAntiAliasingPass;
-    std::unique_ptr<render::BloomPass> m_bloomPass;
     std::shared_ptr<RenderTargets> m_renderTargets;
     app::FirstPersonCamera m_camera;
     engine::PlanarView m_view;

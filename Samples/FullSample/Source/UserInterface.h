@@ -118,7 +118,6 @@ struct UIData
     ibool enablePixelJitter = true;
     ibool rasterizeGBuffer = true;
     ibool useRayQuery = true;
-    ibool enableBloom = true;
     float exposureBias = -1.0f;
     float verticalFov = 60.f;
 
@@ -139,27 +138,14 @@ struct UIData
     float environmentRotation = 0.f;
     
     bool enableDenoiser = true;
-#ifdef WITH_NRD
-    float debug = 0.0f;
-    nrd::Denoiser denoisingMethod = nrd::Denoiser::RELAX_DIFFUSE_SPECULAR;
-    nrd::ReblurSettings reblurSettings = {};
-    nrd::RelaxSettings relaxSettings = {};
-    void SetDefaultDenoiserSettings();
-#endif
     float noiseMix = 0.33f;
     float noiseClampLow = 0.5f;
     float noiseClampHigh = 2.0f;
 
-#ifdef WITH_DLSS
-    bool dlssAvailable = false;
-    float dlssExposureScale = 2.f;
-    float dlssSharpness = 0.f;
-#endif
-
     float resolutionScale = 1.f;
 
-    bool enableFpsLimit = false;
-    uint32_t fpsLimit = 60;
+    bool enableFpsLimit = true;
+    uint32_t fpsLimit = 10;
 
     rtxdi::ReSTIRDIStaticParameters restirDIStaticParams;
     rtxdi::ReGIRStaticParameters regirStaticParams;
