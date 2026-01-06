@@ -25,10 +25,6 @@
 
 #include <utility>
 
-#if WITH_NRD
-#include <NRD.h>
-#endif
-
 using namespace donut::math;
 #include "../../shaders/ShaderParameters.h"
 
@@ -307,17 +303,6 @@ void LightingPasses::CreatePipelines(bool useRayQuery)
     CreateReSTIRDIPipelines(useRayQuery);
     CreateReSTIRGIPipelines(useRayQuery);
 }
-
-#if WITH_NRD
-static void NrdHitDistanceParamsToFloat4(const nrd::HitDistanceParameters* params, dm::float4& out)
-{
-    assert(params);
-    out.x = params->A;
-    out.y = params->B;
-    out.z = params->C;
-    out.w = params->D;
-}
-#endif
 
 void FillReSTIRDIConstants(ReSTIRDI_Parameters& params, const rtxdi::ReSTIRDIContext& restirDIContext, const RTXDI_LightBufferParameters& lightBufferParameters)
 {

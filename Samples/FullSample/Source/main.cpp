@@ -726,11 +726,6 @@ public:
 
         m_previousFrameTimeStamp = steady_clock::now();
 
-#if WITH_NRD
-        if (m_nrd && m_nrd->GetDenoiser() != m_ui.denoisingMethod)
-            m_nrd = nullptr; // need to create a new one
-#endif
-
         if (m_ui.resetISContext)
         {
             GetDevice()->waitForIdle();
