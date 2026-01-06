@@ -95,9 +95,6 @@ set(SHADERMAKE_BIN_OUTPUT_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" CACHE STRING 
 add_subdirectory(External/donut)
 set(DONUT_PATH "${CMAKE_CURRENT_LIST_DIR}/External/donut")
 
-include(External/NRD.cmake)
-include(External/DLSS.cmake)
-
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/Libraries/Rtxdi/CMakeLists.txt")
 
     add_subdirectory(Libraries/Rtxdi)

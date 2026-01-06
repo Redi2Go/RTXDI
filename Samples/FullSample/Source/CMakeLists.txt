@@ -2,10 +2,6 @@ set(project FullSample)
 set(folder "RTXDI SDK")
 
 set(sources
-	"DebugViz/DebugVizPasses.cpp"
-	"DebugViz/DebugVizPasses.h"
-	"DebugViz/PackedDataVizPass.cpp"
-	"DebugViz/PackedDataVizPass.h"
 	"RenderPasses/AccumulationPass.cpp"
 	"RenderPasses/AccumulationPass.h"
 	"RenderPasses/CompositingPass.cpp"
@@ -31,13 +27,7 @@ set(sources
 	"RenderPasses/VisualizationPass.cpp"
 	"RenderPasses/VisualizationPass.h"
 	"AppDefines.h"
-	"DLSS-DX12.cpp"
-	"DLSS-VK.cpp"
-	"DLSS.cpp"
-	"DLSS.h"
 	"main.cpp"
-	"NrdIntegration.cpp"
-	"NrdIntegration.h"
 	"Profiler.cpp"
 	"Profiler.h"
 	"ProfilerSections.h"
@@ -74,20 +64,3 @@ endif()
 target_link_libraries(${project} donut_core donut_engine donut_app donut_render Rtxdi cxxopts)
 add_dependencies(${project} FullSampleShaders)
 set_target_properties(${project} PROPERTIES FOLDER ${folder})
-
-if (TARGET NRD)
-	target_compile_definitions(${project} PRIVATE WITH_NRD=1)
-	target_link_libraries(${project} NRD)
-	
-	# NRD doesn't add a public include path at this time, work around that
-	target_include_directories(${project} PRIVATE "${CMAKE_SOURCE_DIR}/NRD/Include")
-endif()
-
-if (TARGET DLSS)
-	target_compile_definitions(${project} PRIVATE WITH_DLSS=1)
-	target_link_libraries(${project} DLSS)
-	add_custom_command(TARGET ${project} POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${DLSS_SHARED_LIBRARY_PATH}"
-		"$<TARGET_FILE_DIR:${project}>/")
-endif()

@@ -16,12 +16,6 @@
 #include <Rtxdi/GI/Reservoir.hlsli>
 #include <Rtxdi/Utils/ReservoirAddressing.hlsli>
 
-#ifdef WITH_NRD
-#define NRD_HEADER_ONLY
-#include <NRDEncoding.hlsli>
-#include <NRD.hlsli>
-#endif
-
 #include "../ShadingHelpers.hlsli"
 
 static const float kMaxBrdfValue = 1e4;

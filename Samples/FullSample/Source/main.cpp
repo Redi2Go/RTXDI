@@ -53,14 +53,6 @@
 #include "Testing.h"
 #include "UserInterface.h"
 
-#if WITH_NRD
-#include "NrdIntegration.h"
-#endif
-
-#if WITH_DLSS
-#include "DLSS.h"
-#endif
-
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -1094,32 +1086,12 @@ public:
             
             m_localLightPdfMipmapPass->Process(m_commandList);
         }
-
-
-#if WITH_NRD
-        if (restirDIContext.GetStaticParameters().CheckerboardSamplingMode != rtxdi::CheckerboardMode::Off)
-        {
-            m_ui.reblurSettings.checkerboardMode = nrd::CheckerboardMode::BLACK;
-            m_ui.relaxSettings.checkerboardMode = nrd::CheckerboardMode::BLACK;
-        }
-        else
-        {
-            m_ui.reblurSettings.checkerboardMode = nrd::CheckerboardMode::OFF;
-            m_ui.relaxSettings.checkerboardMode = nrd::CheckerboardMode::OFF;
-        }
-#endif
         
         LightingPasses::RenderSettings lightingSettings = m_ui.lightingSettings;
         lightingSettings.enablePreviousTLAS &= m_ui.enableAnimations;
         lightingSettings.enableAlphaTestedGeometry = m_ui.gbufferSettings.enableAlphaTestedGeometry;
         lightingSettings.enableTransparentGeometry = m_ui.gbufferSettings.enableTransparentGeometry;
-#if WITH_NRD
-        lightingSettings.reblurDiffHitDistanceParams = &m_ui.reblurSettings.hitDistanceParameters;
-        lightingSettings.reblurSpecHitDistanceParams = &m_ui.reblurSettings.hitDistanceParameters;
-        lightingSettings.denoiserMode = denoiserMode;
-#else
         lightingSettings.denoiserMode = DENOISER_MODE_OFF;
-#endif
         if (lightingSettings.denoiserMode == DENOISER_MODE_OFF)
             lightingSettings.enableGradients = false;
 
@@ -1200,22 +1172,6 @@ public:
             m_commandList->clearTextureFloat(m_renderTargets->DiffuseLighting, nvrhi::AllSubresources, nvrhi::Color(0.f));
             m_commandList->clearTextureFloat(m_renderTargets->SpecularLighting, nvrhi::AllSubresources, nvrhi::Color(0.f));
         }
-        
-#if WITH_NRD
-        if (m_ui.enableDenoiser)
-        {
-            ProfilerScope scope(*m_profiler, m_commandList, ProfilerSection::Denoising);
-            m_commandList->beginMarker("Denoising");
-
-            const void* methodSettings = (m_ui.denoisingMethod == nrd::Denoiser::RELAX_DIFFUSE_SPECULAR)
-                ? (void*)&m_ui.relaxSettings
-                : (void*)&m_ui.reblurSettings;
-
-            m_nrd->RunDenoiserPasses(m_commandList, *m_renderTargets, m_view, m_viewPrevious, GetFrameIndex(), lightingSettings.enableGradients, methodSettings, m_ui.debug);
-            
-            m_commandList->endMarker();
-        }
-#endif
 
         m_compositingPass->Render(
             m_commandList,
@@ -1241,14 +1197,7 @@ public:
 
         if (m_ui.enableBloom)
         {
-#if WITH_DLSS
-            // Use the unresolved image for bloom when DLSS is active because DLSS can modify HDR values significantly and add bloom flicker.
-            nvrhi::ITexture* bloomSource = (m_ui.aaMode == AntiAliasingMode::DLSS && m_ui.resolutionScale == 1.f)
-                ? m_renderTargets->HdrColor
-                : m_renderTargets->ResolvedColor;
-#else
-            nvrhi::ITexture* bloomSource = m_RenderTargets->ResolvedColor;
-#endif
+            nvrhi::ITexture* bloomSource = m_renderTargets->ResolvedColor;
 
             m_bloomPass->Render(m_commandList, m_renderTargets->ResolvedFramebuffer, m_upscaledView, bloomSource, 32.f, 0.005f);
         }

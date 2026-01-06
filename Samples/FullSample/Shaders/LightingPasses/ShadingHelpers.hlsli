@@ -11,9 +11,6 @@
 #ifndef SHADING_HELPERS_HLSLI
 #define SHADING_HELPERS_HLSLI
 
-#include "NRDEncoding.hlsli"
-#include "NRD.hlsli"
-
 struct SplitBrdf
 {
     float demodulatedDiffuse;

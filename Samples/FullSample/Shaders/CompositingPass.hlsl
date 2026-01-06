@@ -14,12 +14,6 @@
 #include "SceneGeometry.hlsli"
 #include "GBufferHelpers.hlsli"
 
-#ifdef WITH_NRD
-#define NRD_HEADER_ONLY
-#include <NRDEncoding.hlsli>
-#include <NRD.hlsli>
-#endif
-
 ConstantBuffer<CompositingConstants> g_Const : register(b0);
 
 RWTexture2D<float4> u_Output : register(u0);

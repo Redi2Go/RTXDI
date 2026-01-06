@@ -14,12 +14,6 @@
 
 #include <Rtxdi/DI/Reservoir.hlsli>
 
-#ifdef WITH_NRD
-#define NRD_HEADER_ONLY
-#include <NRDEncoding.hlsli>
-#include <NRD.hlsli>
-#endif
-
 #include "ShadingHelpers.hlsli"
 
 static const float c_MaxIndirectRadiance = 10;
