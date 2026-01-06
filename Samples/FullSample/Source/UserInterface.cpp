@@ -330,7 +330,6 @@ void UserInterface::SamplingSettings()
 
         m_ui.resetAccumulation |= ImGui::Combo("Direct Lighting Mode", (int*)&m_ui.directLightingMode,
             "None\0"
-            "BRDF\0"
             "ReSTIR\0"
         );
         switch(m_ui.directLightingMode)
@@ -338,12 +337,6 @@ void UserInterface::SamplingSettings()
         case DirectLightingMode::None:
             ShowHelpMarker(
                 "No direct lighting is applied to primary surfaces.");
-            break;
-        case DirectLightingMode::Brdf:
-            ShowHelpMarker(
-                "Trace BRDF rays from primary surfaces and collect emissive objects found by such rays. "
-                "No light sampling is performed for primary surfaces. Produces very noisy results unless "
-                "Indirect Lighting Mode is set to ReSTIR GI, in which case resampling is applied to BRDF rays.");
             break;
         case DirectLightingMode::ReStir:
             ShowHelpMarker(
@@ -548,16 +541,10 @@ void UserInterface::SamplingSettings()
     {
         m_ui.resetAccumulation |= ImGui::Combo("Indirect Lighting Mode", (int*)&m_ui.indirectLightingMode,
             "None\0"
-            "BRDF\0"
             "ReSTIR GI\0"
         );
         switch (m_ui.indirectLightingMode)
         {
-        case IndirectLightingMode::Brdf:
-            ShowHelpMarker(
-                "Trace BRDF rays from primary surfaces. "
-                "Shade the surfaces found with BRDF rays using direct light sampling.");
-            break;
         case IndirectLightingMode::ReStirGI:
             ShowHelpMarker(
                 "Trace diffuse and specular BRDF rays and resample results with ReSTIR GI. "

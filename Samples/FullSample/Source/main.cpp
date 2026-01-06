@@ -894,7 +894,6 @@ public:
         const bool checkerboard = restirDIContext.GetStaticParameters().CheckerboardSamplingMode != rtxdi::CheckerboardMode::Off;
 
         bool enableDirectReStirPass = m_ui.directLightingMode == DirectLightingMode::ReStir;
-        bool enableBrdfAndIndirectPass = m_ui.directLightingMode == DirectLightingMode::Brdf || m_ui.indirectLightingMode != IndirectLightingMode::None;
         bool enableIndirect = m_ui.indirectLightingMode != IndirectLightingMode::None;
 
         // When indirect lighting is enabled, we don't want ReSTIR to be the NRD front-end,
@@ -931,32 +930,9 @@ public:
                 lightingSettings);
         }
 
-        if (enableBrdfAndIndirectPass)
-        {
-            restirDIShadingParams = m_isContext->GetReSTIRDIContext().GetShadingParameters();
-            restirDIShadingParams.enableDenoiserInputPacking = true;
-            m_isContext->GetReSTIRDIContext().SetShadingParameters(restirDIShadingParams);
-
-            bool enableReSTIRGI = m_ui.indirectLightingMode == IndirectLightingMode::ReStirGI;
-
-            m_lightingPasses->RenderBrdfRays(
-                m_commandList,
-                *m_isContext,
-                m_view, m_viewPrevious,
-                lightingSettings,
-                m_ui.gbufferSettings,
-                *m_environmentLight,
-                /* enableIndirect = */ enableIndirect,
-                /* enableAdditiveBlend = */ enableDirectReStirPass,
-                /* enableEmissiveSurfaces = */ m_ui.directLightingMode == DirectLightingMode::Brdf,
-                /* enableAccumulation = */ false,
-                enableReSTIRGI
-                );
-        }
-
         // If none of the passes above were executed, clear the textures to avoid stale data there.
         // It's a weird mode but it can be selected from the UI.
-        if (!enableDirectReStirPass && !enableBrdfAndIndirectPass)
+        if (!enableDirectReStirPass)
         {
             m_commandList->clearTextureFloat(m_renderTargets->DiffuseLighting, nvrhi::AllSubresources, nvrhi::Color(0.f));
             m_commandList->clearTextureFloat(m_renderTargets->SpecularLighting, nvrhi::AllSubresources, nvrhi::Color(0.f));
