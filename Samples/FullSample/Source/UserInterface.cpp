@@ -856,53 +856,6 @@ void UserInterface::PostProcessSettings()
         ImGui::SameLine(160.f);
         ImGui::SliderFloat("Exposure bias", &m_ui.exposureBias, -4.f, 2.f);
 
-        ImGui::Separator();
-        ImGui::PushItemWidth(150.f);
-        ImGui::Combo("Visualization", (int*)&m_ui.visualizationMode,
-            "None\0"
-            "Composited Color\0"
-            "Resolved Color\0"
-            "Diffuse\0"
-            "Specular\0"
-            "Diffuse (Denoised)\0"
-            "Specular (Denoised)\0"
-            "Reservoir Weight\0"
-            "Reservoir M\0"
-            "Diffuse Gradients\0"
-            "Specular Gradients\0"
-            "Diffuse Confidence\0"
-            "Specular Confidence\0"
-            "GI Reservoir Weight\0"
-            "GI Reservoir M\0"
-        );
-        ShowHelpMarker(
-            "For HDR signals, displays a horizontal cross-section of the specified channel.\n"
-            "The cross-section is taken in the middle of the screen, at the yellow line.\n"
-            "Horizontal lines show the values in log scale: the yellow line in the middle is 1.0,\n"
-            "above it are 10, 100, etc., and below it are 0.1, 0.01, etc.\n"
-            "The yellow \"fire\" at the bottom is shown where the displayed value is 0.\n"
-            "For confidence, shows a heat map with blue at full confidence and red at zero."
-        );
-        ImGui::Combo("Debug Render Target", (int*)&m_ui.debugRenderOutputBuffer,
-            "LDR Color\0"
-            "Depth\0"
-            "GBufferDiffuseAlbedo\0"
-            "GBufferSpecularRough\0"
-            "GBufferNormals\0"
-            "GBufferGeoNormals\0"
-            "GBufferEmissive\0"
-            "DiffuseLighting\0"
-            "SpecularLighting\0"
-            "DenoisedDiffuseLighting\0"
-            "DenoisedSpecularLighting\0"
-            "RestirLuminance\0"
-            "PrevRestirLuminance\0"
-            "DiffuseConfidence\0"
-            "SpecularConfidence\0"
-            "MotionVectors\0"
-        );
-        ImGui::PopItemWidth();
-
         ImGui::TreePop();
     }
 }

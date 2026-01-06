@@ -141,15 +141,6 @@ void StoreShadingOutput(
         otherFieldPixelPosition.x += (g_Const.runtimeParams.activeCheckerboardField == 1) == ((pixelPosition.y & 1) != 0)
             ? 1 : -1;
 
-        if (g_Const.denoiserMode == DENOISER_MODE_RELAX || g_Const.enableAccumulation)
-        {
-            diffuse *= 2;
-            specular *= 2;
-
-            u_DiffuseLighting[otherFieldPixelPosition] = 0;
-            u_SpecularLighting[otherFieldPixelPosition] = 0;
-        }
-        else // g_Const.denoiserMode == DENOISER_MODE_OFF
         {
             u_DiffuseLighting[otherFieldPixelPosition] = float4(diffuse, 0);
             u_SpecularLighting[otherFieldPixelPosition] = float4(specular, 0);

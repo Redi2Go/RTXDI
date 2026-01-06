@@ -1162,26 +1162,6 @@ public:
             m_CommonPasses->BlitTexture(m_commandList, m_renderTargets->LdrFramebuffer->GetFramebuffer(m_upscaledView), m_renderTargets->ResolvedColor, &m_bindingCache);
         }
 
-        if (m_ui.visualizationMode != VIS_MODE_NONE)
-        {
-            bool haveSignal = true;
-            uint32_t inputBufferIndex = 0;
-            switch(m_ui.visualizationMode)
-            {
-            case VIS_MODE_RESERVOIR_WEIGHT:
-            case VIS_MODE_RESERVOIR_M:
-                inputBufferIndex = m_lightingPasses->GetOutputReservoirBufferIndex();
-                haveSignal = m_ui.directLightingMode == DirectLightingMode::ReStir;
-                break;
-                
-            case VIS_MODE_GI_WEIGHT:
-            case VIS_MODE_GI_M:
-                inputBufferIndex = m_lightingPasses->GetGIOutputReservoirBufferIndex();
-                haveSignal = m_ui.indirectLightingMode == IndirectLightingMode::ReStirGI;
-                break;
-            }
-        }
-
         switch (m_ui.debugRenderOutputBuffer)
         {
             case DebugRenderOutput::LDRColor:

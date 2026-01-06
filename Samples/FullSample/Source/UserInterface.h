@@ -152,7 +152,6 @@ struct UIData
     std::optional<int> animationFrame;
     std::string benchmarkResults;
 
-    uint32_t visualizationMode = 0; // See the VIS_MODE_XXX constants in ShaderParameters.h
     uint32_t debugRenderOutputBuffer = 0; // See DebugRenderOutput enum above
 
     bool storeReferenceImage = false;
