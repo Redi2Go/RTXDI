@@ -34,7 +34,6 @@
 #include <taskflow/taskflow.hpp>
 #endif
 
-#include "DebugViz/DebugVizPasses.h"
 #include "RenderPasses/AccumulationPass.h"
 #include "RenderPasses/CompositingPass.h"
 #include "RenderPasses/ConfidencePass.h"
@@ -502,7 +501,6 @@ public:
             m_environmentMapPdfMipmapPass = nullptr;
             m_localLightPdfMipmapPass = nullptr;
             m_visualizationPass = nullptr;
-            m_debugVizPasses = nullptr;
             m_ui.environmentMapDirty = 1;
 
             LoadShaders();
@@ -574,7 +572,6 @@ public:
             m_compositingPass->CreateBindingSet(*m_renderTargets);
 
             m_visualizationPass = nullptr;
-            m_debugVizPasses = nullptr;
 
             renderTargetsCreated = true;
         }
@@ -670,28 +667,6 @@ public:
         {
             m_visualizationPass = std::make_unique<VisualizationPass>(GetDevice(), *m_CommonPasses, *m_shaderFactory, *m_renderTargets, *m_rtxdiResources);
         }
-
-        if (!m_debugVizPasses || renderTargetsCreated)
-        {
-            m_debugVizPasses = std::make_unique<DebugVizPasses>(GetDevice(), m_shaderFactory, m_scene, m_bindlessLayout);
-            m_debugVizPasses->CreateBindingSets(*m_renderTargets, m_renderTargets->DebugColor);
-            m_debugVizPasses->CreatePipelines();
-        }
-
-#if WITH_NRD
-        if (!m_nrd)
-        {
-            m_nrd = std::make_unique<NrdIntegration>(GetDevice(), m_ui.denoisingMethod);
-            m_nrd->Initialize(m_renderTargets->Size.x, m_renderTargets->Size.y);
-        }
-#endif
-#if WITH_DLSS
-        {
-            m_dlss->SetRenderSize(m_renderTargets->Size.x, m_renderTargets->Size.y, m_renderTargets->Size.x, m_renderTargets->Size.y);
-            
-            m_ui.dlssAvailable = m_dlss->IsAvailable();
-        }
-#endif
     }
 
     virtual void RenderSplashScreen(nvrhi::IFramebuffer* framebuffer) override
@@ -931,7 +906,6 @@ public:
         m_renderTargets->NextFrame();
         m_glassPass->NextFrame();
         m_scene->NextFrame();
-        m_debugVizPasses->NextFrame();
         
         // Advance the TAA jitter offset at half frame rate if accumulation is used with
         // checkerboard rendering. Otherwise, the jitter pattern resonates with the checkerboard,
@@ -1307,19 +1281,15 @@ public:
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->Depth, &m_bindingCache);
                 break;
             case GBufferDiffuseAlbedo:
-                m_debugVizPasses->RenderUnpackedDiffuseAlbeo(m_commandList, m_upscaledView);
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DebugColor, &m_bindingCache);
                 break;
             case GBufferSpecularRough:
-                m_debugVizPasses->RenderUnpackedSpecularRoughness(m_commandList, m_upscaledView);
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DebugColor, &m_bindingCache);
                 break;
             case GBufferNormals:
-                m_debugVizPasses->RenderUnpackedNormals(m_commandList, m_upscaledView);
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DebugColor, &m_bindingCache);
                 break;
             case GBufferGeoNormals:
-                m_debugVizPasses->RenderUnpackedGeoNormals(m_commandList, m_upscaledView);
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DebugColor, &m_bindingCache);
                 break;
             case GBufferEmissive:
@@ -1420,7 +1390,6 @@ private:
     std::unique_ptr<RtxdiResources> m_rtxdiResources;
     std::unique_ptr<engine::IesProfileLoader> m_iesProfileLoader;
     std::shared_ptr<Profiler> m_profiler;
-    std::unique_ptr<DebugVizPasses> m_debugVizPasses;
 
     uint32_t m_renderFrameIndex = 0;
 
