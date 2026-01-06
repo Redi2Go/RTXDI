@@ -501,11 +501,8 @@ public:
             isStaticParams.CheckerboardSamplingMode = m_ui.restirDIStaticParams.CheckerboardSamplingMode;
             isStaticParams.renderHeight = renderHeight;
             isStaticParams.renderWidth = renderWidth;
-            isStaticParams.regirStaticParams = m_ui.regirStaticParams;
 
             m_isContext = std::make_unique<rtxdi::ImportanceSamplingContext>(isStaticParams);
-
-            m_ui.regirLightSlotCount = m_isContext->GetReGIRContext().GetReGIRLightSlotCount();
         }
 
         if (!m_renderTargets)
@@ -580,7 +577,7 @@ public:
         if (rtxdiResourcesCreated || m_ui.reloadShaders)
         {
             // Some RTXDI context settings affect the shader permutations
-            m_lightingPasses->CreatePipelines(m_ui.regirStaticParams, m_ui.useRayQuery);
+            m_lightingPasses->CreatePipelines(m_ui.useRayQuery);
         }
 
         m_ui.reloadShaders = false;
@@ -649,14 +646,6 @@ public:
             break;
         }
         }
-    }
-
-    void UpdateReGIRContextFromUI()
-    {
-        auto& regirContext = m_isContext->GetReGIRContext();
-        auto dynamicParams = m_ui.regirDynamicParameters;
-        dynamicParams.center = { m_regirCenter.x, m_regirCenter.y, m_regirCenter.z };
-        regirContext.SetDynamicParameters(dynamicParams);
     }
 
     void UpdateReSTIRDIContextFromUI()
@@ -802,7 +791,6 @@ public:
         if (!m_ui.freezeRegirPosition)
             m_regirCenter = m_camera.GetPosition();
         UpdateReSTIRDIContextFromUI();
-        UpdateReGIRContextFromUI();
         UpdateReSTIRGIContextFromUI();
 
         m_postprocessGBufferPass->NextFrame();

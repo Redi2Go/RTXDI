@@ -320,44 +320,6 @@ void UserInterface::SamplingSettings()
             ImGui::TreePop();
         }
 
-        if (ImGui::TreeNode("ReGIR Context"))
-        {
-            if (ImGui::Button("Apply Settings"))
-                m_ui.resetISContext = true;
-
-            ImGui::DragInt("Lights per Cell", (int*)&m_ui.regirStaticParams.LightsPerCell, 1, 32, 8192);
-
-            static const char* regirShapeOptions[] = { "Grid", "Onion" };
-            const char* currentReGIRShapeOption = regirShapeOptions[static_cast<int>(m_ui.regirStaticParams.Mode) - 1]; // Disabled option is skipped
-            if (ImGui::BeginCombo("ReGIR Mode", currentReGIRShapeOption))
-            {
-                for (int i = 0; i < sizeof(regirShapeOptions) / sizeof(regirShapeOptions[0]); i++)
-                {
-                    int enumIndex = i + 1; // We skip Disabled here since that's controlled by the ReSTIR DI + ReSTIR GI settings.
-                    bool is_selected = (enumIndex == static_cast<int>(m_ui.regirStaticParams.Mode));
-                    if (ImGui::Selectable(regirShapeOptions[i], is_selected))
-                        *(int*)&m_ui.regirStaticParams.Mode = enumIndex;
-                    if (is_selected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
-
-            if (m_ui.regirStaticParams.Mode == rtxdi::ReGIRMode::Grid)
-            {
-                ImGui::DragInt3("Grid Resolution", (int*)&m_ui.regirStaticParams.gridParameters.GridSize.x, 1, 1, 64);
-            }
-            else if (m_ui.regirStaticParams.Mode == rtxdi::ReGIRMode::Onion)
-            {
-                ImGui::SliderInt("Onion Layers - Detail", (int*)&m_ui.regirStaticParams.onionParameters.OnionDetailLayers, 0, 8);
-                ImGui::SliderInt("Onion Layers - Coverage", (int*)&m_ui.regirStaticParams.onionParameters.OnionCoverageLayers, 0, 20);
-            }
-
-            ImGui::Text("Total ReGIR Cells: %d", m_ui.regirLightSlotCount / m_ui.regirStaticParams.LightsPerCell);
-
-            ImGui::TreePop();
-        }
-
         ImGui::TreePop();
     }
     ImGui::Separator();
@@ -411,36 +373,6 @@ void UserInterface::SamplingSettings()
             ImGui::PopItemWidth();
             ImGui::Separator();
 
-            if (ImGui::TreeNode("ReGIR Presampling"))
-            {
-                ShowHelpMarker("Dynamic ReGIR Settings");
-                static const char* regirPresamplingOptions[] = { "Uniform Sampling", "Power RIS" };
-                const char* currentPresamplingOption = regirPresamplingOptions[static_cast<int>(m_ui.regirDynamicParameters.presamplingMode)];
-                if (ImGui::BeginCombo("ReGIR RIS Presampling Mode", currentPresamplingOption))
-                {
-                    for (int i = 0; i < sizeof(regirPresamplingOptions) / sizeof(regirPresamplingOptions[0]); i++)
-                    {
-                        bool is_selected = (i == static_cast<int>(m_ui.regirDynamicParameters.presamplingMode));
-                        if (ImGui::Selectable(regirPresamplingOptions[i], is_selected))
-                            *(int*)&m_ui.regirDynamicParameters.presamplingMode = i;
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-                ShowHelpMarker(
-                    "Presampling method the ReGIR algorithm uses to select lights");
-                m_ui.resetAccumulation |= ImGui::SliderFloat("Cell Size", &m_ui.regirDynamicParameters.regirCellSize, 0.1f, 4.f);
-                m_ui.resetAccumulation |= ImGui::SliderInt("Grid Build Samples", (int*)&m_ui.regirDynamicParameters.regirNumBuildSamples, 0, 32);
-                m_ui.resetAccumulation |= ImGui::SliderFloat("Sampling Jitter", &m_ui.regirDynamicParameters.regirSamplingJitter, 0.0f, 2.f);
-
-                ImGui::Checkbox("Freeze Position", &m_ui.freezeRegirPosition);
-                ImGui::SameLine(0.f, 10.f);
-                ImGui::Checkbox("Visualize Cells", (bool*)&m_ui.lightingSettings.visualizeRegirCells);
-
-                ImGui::TreePop();
-            }
-
             if (ImGui::TreeNode("Initial Sampling"))
             {
                 ImGui::SetNextItemOpen(true);
@@ -460,30 +392,6 @@ void UserInterface::SamplingSettings()
                     samplingSettingsChanged |= ImGui::SliderInt("Local Light Power RIS Samples", (int*)&m_ui.restirDI.numLocalLightPowerRISSamples, 0, 32);
                     ShowHelpMarker(
                         "Number of samples drawn from the local lights power-based RIS buffer.");
-
-                    samplingSettingsChanged |= ImGui::RadioButton("Local Light ReGIR RIS", initSamplingMode, 2);
-                    ShowHelpMarker("Sample local lights using ReGIR-based RIS");
-
-                    samplingSettingsChanged |= ImGui::SliderInt("Local Light ReGIR RIS Samples", (int*)&m_ui.restirDI.numLocalLightReGIRRISSamples, 0, 32);
-                    ShowHelpMarker(
-                        "Number of samples drawn from the local lights ReGIR-based RIS buffer");
-
-                    static const char* regirFallbackOptions[] = { "Uniform Sampling", "Power RIS" };
-                    const char* currentFallbackOption = regirFallbackOptions[static_cast<int>(m_ui.regirDynamicParameters.fallbackSamplingMode)];
-                    if (ImGui::BeginCombo("ReGIR RIS Fallback Sampling Mode", currentFallbackOption))
-                    {   
-                        for (int i = 0; i < sizeof(regirFallbackOptions) / sizeof(regirFallbackOptions[0]); i++)
-                        {
-                            bool is_selected = (i == static_cast<int>(m_ui.regirDynamicParameters.fallbackSamplingMode));
-                            if (ImGui::Selectable(regirFallbackOptions[i], is_selected))
-                                *(int*)&m_ui.regirDynamicParameters.fallbackSamplingMode = i;
-                            if (is_selected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
-                    }
-                    ShowHelpMarker(
-                        "Sampling method to fall back to for surfaces outside the ReGIR volume");
 
                     m_ui.resetAccumulation |= samplingSettingsChanged;
 

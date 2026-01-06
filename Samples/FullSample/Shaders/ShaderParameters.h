@@ -215,7 +215,6 @@ struct ResamplingConstants
 
     // Algo-specific params
     ReSTIRDI_Parameters restirDI;
-    ReGIR_Parameters regir;
     ReSTIRGI_Parameters restirGI;
     BRDFPathTracing_Parameters brdfPT;
 

@@ -68,13 +68,6 @@ void RayGen()
     // Store the sampled lighting luminance for the gradient pass.
     // Discard the pixels where the visibility was reused, as gradients need actual visibility.
     u_RestirLuminance[GlobalIndex] = currLuminance * (reservoir.age > 0 ? 0 : 1);
-    
-#if RTXDI_REGIR_MODE != RTXDI_REGIR_DISABLED
-    if (g_Const.visualizeRegirCells)
-    {
-        diffuse *= RTXDI_VisualizeReGIRCells(g_Const.regir, RAB_GetSurfaceWorldPos(surface));
-    }
-#endif
 
     StoreShadingOutput(GlobalIndex, pixelPosition, 
         surface.viewDepth, surface.material.roughness, diffuse, specular, lightDistance, true, g_Const.restirDI.shadingParams.enableDenoiserInputPacking);

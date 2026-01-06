@@ -142,11 +142,8 @@ struct UIData
     uint32_t fpsLimit = 10;
 
     rtxdi::ReSTIRDIStaticParameters restirDIStaticParams;
-    rtxdi::ReGIRStaticParameters regirStaticParams;
     rtxdi::ReSTIRGIStaticParameters restirGIStaticParams;
-    rtxdi::ReGIRDynamicParameters regirDynamicParameters;
     bool resetISContext = false;
-    uint32_t regirLightSlotCount = 0;
     bool freezeRegirPosition = false;
     std::optional<int> animationFrame;
     std::string benchmarkResults;

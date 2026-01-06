@@ -33,7 +33,6 @@ namespace donut::engine
 namespace rtxdi
 {
     class ReSTIRDIContext;
-    struct ReGIRStaticParameters;
     class ImportanceSamplingContext;
 }
 
@@ -66,7 +65,6 @@ public:
         ibool enablePreviousTLAS = true;
         ibool enableAlphaTestedGeometry = true;
         ibool enableRayCounts = true;
-        ibool visualizeRegirCells = false;
         
         ibool enableGradients = true;
         float gradientLogDarknessBias = -12.f;
@@ -84,7 +82,7 @@ public:
         std::shared_ptr<Profiler> profiler,
         nvrhi::IBindingLayout* bindlessLayout);
 
-    void CreatePipelines(const rtxdi::ReGIRStaticParameters& regirStaticParams, bool useRayQuery);
+    void CreatePipelines(bool useRayQuery);
 
     void CreateBindingSet(
         nvrhi::rt::IAccelStruct* topLevelAS,
@@ -128,8 +126,6 @@ public:
     [[nodiscard]] uint32_t GetOutputReservoirBufferIndex() const;
     [[nodiscard]] uint32_t GetGIOutputReservoirBufferIndex() const;
 
-    static donut::engine::ShaderMacro GetRegirMacro(const rtxdi::ReGIRStaticParameters& regirStaticParams);
-
 private:
     void FillResamplingConstants(
         ResamplingConstants& constants,
@@ -137,8 +133,7 @@ private:
         const rtxdi::ImportanceSamplingContext& isContext);
 
     void CreatePresamplingPipelines();
-    void CreateReGIRPipeline(const rtxdi::ReGIRStaticParameters& regirStaticParams, const std::vector<donut::engine::ShaderMacro>& regirMacros);
-    void CreateReSTIRDIPipelines(const std::vector<donut::engine::ShaderMacro>& regirMacros, bool useRayQuery);
+    void CreateReSTIRDIPipelines(bool useRayQuery);
     void CreateReSTIRGIPipelines(bool useRayQuery);
 
     struct ComputePass
@@ -155,7 +150,6 @@ private:
 
     ComputePass m_presampleLightsPass;
     ComputePass m_presampleEnvironmentMapPass;
-    ComputePass m_presampleReGIR;
     RayTracingPass m_generateInitialSamplesPass;
     RayTracingPass m_temporalResamplingPass;
     RayTracingPass m_spatialResamplingPass;

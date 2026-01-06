@@ -274,42 +274,15 @@ void LightingPasses::ExecuteRayTracingPass(nvrhi::ICommandList* commandList, Ray
     commandList->endMarker();
 }
 
-donut::engine::ShaderMacro LightingPasses::GetRegirMacro(const rtxdi::ReGIRStaticParameters& regirStaticParams)
-{
-    std::string regirMode;
-
-    switch (regirStaticParams.Mode)
-    {
-    case rtxdi::ReGIRMode::Disabled:
-        regirMode = "RTXDI_REGIR_DISABLED";
-        break;
-    case rtxdi::ReGIRMode::Grid:
-        regirMode = "RTXDI_REGIR_GRID";
-        break;
-    case rtxdi::ReGIRMode::Onion:
-        regirMode = "RTXDI_REGIR_ONION";
-        break;
-    }
-
-    return { "RTXDI_REGIR_MODE", regirMode };
-}
-
 void LightingPasses::CreatePresamplingPipelines()
 {
     CreateComputePass(m_presampleLightsPass, "app/LightingPasses/Presampling/PresampleLights.hlsl", {});
     CreateComputePass(m_presampleEnvironmentMapPass, "app/LightingPasses/Presampling/PresampleEnvironmentMap.hlsl", {});
 }
 
-void LightingPasses::CreateReGIRPipeline(const rtxdi::ReGIRStaticParameters& regirStaticParams, const std::vector<donut::engine::ShaderMacro>& regirMacros)
+void LightingPasses::CreateReSTIRDIPipelines(bool useRayQuery)
 {
-    if (regirStaticParams.Mode != rtxdi::ReGIRMode::Disabled)
-    {
-        CreateComputePass(m_presampleReGIR, "app/LightingPasses/Presampling/PresampleReGIR.hlsl", regirMacros);
-    }
-}
-
-void LightingPasses::CreateReSTIRDIPipelines(const std::vector<donut::engine::ShaderMacro>& regirMacros, bool useRayQuery)
-{
+    std::vector<donut::engine::ShaderMacro> regirMacros = { {"RTXDI_REGIR_MODE", "RTXDI_REGIR_DISABLED"} };
     m_generateInitialSamplesPass.Init(m_device, *m_shaderFactory, "app/LightingPasses/DI/GenerateInitialSamples.hlsl", regirMacros, useRayQuery, RTXDI_SCREEN_SPACE_GROUP_SIZE, m_bindingLayout, nullptr, m_bindlessLayout);
     m_temporalResamplingPass.Init(m_device, *m_shaderFactory, "app/LightingPasses/DI/TemporalResampling.hlsl", {}, useRayQuery, RTXDI_SCREEN_SPACE_GROUP_SIZE, m_bindingLayout, nullptr, m_bindlessLayout);
     m_spatialResamplingPass.Init(m_device, *m_shaderFactory, "app/LightingPasses/DI/SpatialResampling.hlsl", {}, useRayQuery, RTXDI_SCREEN_SPACE_GROUP_SIZE, m_bindingLayout, nullptr, m_bindlessLayout);
@@ -328,15 +301,10 @@ void LightingPasses::CreateReSTIRGIPipelines(bool useRayQuery)
     m_GIFinalShadingPass.Init(m_device, *m_shaderFactory, "app/LightingPasses/GI/FinalShading.hlsl", {}, useRayQuery, RTXDI_SCREEN_SPACE_GROUP_SIZE, m_bindingLayout, nullptr, m_bindlessLayout);
 }
 
-void LightingPasses::CreatePipelines(const rtxdi::ReGIRStaticParameters& regirStaticParams, bool useRayQuery)
+void LightingPasses::CreatePipelines(bool useRayQuery)
 {
-    std::vector<donut::engine::ShaderMacro> regirMacros = {
-        GetRegirMacro(regirStaticParams)
-    };
-
     CreatePresamplingPipelines();
-    CreateReGIRPipeline(regirStaticParams, regirMacros);
-    CreateReSTIRDIPipelines(regirMacros, useRayQuery);
+    CreateReSTIRDIPipelines(useRayQuery);
     CreateReSTIRGIPipelines(useRayQuery);
 }
 
@@ -362,50 +330,6 @@ void FillReSTIRDIConstants(ReSTIRDI_Parameters& params, const rtxdi::ReSTIRDICon
     params.temporalResamplingParams = restirDIContext.GetTemporalResamplingParameters();
     params.spatialResamplingParams = restirDIContext.GetSpatialResamplingParameters();
     params.shadingParams = restirDIContext.GetShadingParameters();
-}
-
-void FillReGIRConstants(ReGIR_Parameters& params, const rtxdi::ReGIRContext& regirContext)
-{
-    auto staticParams = regirContext.GetReGIRStaticParameters();
-    auto dynamicParams = regirContext.GetReGIRDynamicParameters();
-    auto gridParams = regirContext.GetReGIRGridCalculatedParameters();
-    auto onionParams = regirContext.GetReGIROnionCalculatedParameters();
-
-    params.gridParams.cellsX = staticParams.gridParameters.GridSize.x;
-    params.gridParams.cellsY = staticParams.gridParameters.GridSize.y;
-    params.gridParams.cellsZ = staticParams.gridParameters.GridSize.z;
-
-    params.commonParams.numRegirBuildSamples = dynamicParams.regirNumBuildSamples;
-    params.commonParams.risBufferOffset = regirContext.GetReGIRCellOffset();
-    params.commonParams.lightsPerCell = staticParams.LightsPerCell;
-    params.commonParams.centerX = dynamicParams.center.x;
-    params.commonParams.centerY = dynamicParams.center.y;
-    params.commonParams.centerZ = dynamicParams.center.z;
-    params.commonParams.cellSize = (staticParams.Mode == rtxdi::ReGIRMode::Onion)
-        ? dynamicParams.regirCellSize * 0.5f // Onion operates with radii, while "size" feels more like diameter
-        : dynamicParams.regirCellSize;
-    params.commonParams.localLightSamplingFallbackMode = static_cast<uint32_t>(dynamicParams.fallbackSamplingMode);
-    params.commonParams.localLightPresamplingMode = static_cast<uint32_t>(dynamicParams.presamplingMode);
-    params.commonParams.samplingJitter = std::max(0.f, dynamicParams.regirSamplingJitter * 2.f);
-    params.onionParams.cubicRootFactor = onionParams.regirOnionCubicRootFactor;
-    params.onionParams.linearFactor = onionParams.regirOnionLinearFactor;
-    params.onionParams.numLayerGroups = uint32_t(onionParams.regirOnionLayers.size());
-
-    assert(onionParams.regirOnionLayers.size() <= RTXDI_ONION_MAX_LAYER_GROUPS);
-    for (int group = 0; group < int(onionParams.regirOnionLayers.size()); group++)
-    {
-        params.onionParams.layers[group] = onionParams.regirOnionLayers[group];
-        params.onionParams.layers[group].innerRadius *= params.commonParams.cellSize;
-        params.onionParams.layers[group].outerRadius *= params.commonParams.cellSize;
-    }
-
-    assert(onionParams.regirOnionRings.size() <= RTXDI_ONION_MAX_RINGS);
-    for (int n = 0; n < int(onionParams.regirOnionRings.size()); n++)
-    {
-        params.onionParams.rings[n] = onionParams.regirOnionRings[n];
-    }
-
-    params.onionParams.cubicRootFactor = regirContext.GetReGIROnionCalculatedParameters().regirOnionCubicRootFactor;
 }
 
 void FillReSTIRGIConstants(ReSTIRGI_Parameters& constants, const rtxdi::ReSTIRGIContext& restirGIContext)
@@ -438,14 +362,13 @@ void LightingPasses::FillResamplingConstants(
     constants.enablePreviousTLAS = lightingSettings.enablePreviousTLAS;
     constants.denoiserMode = lightingSettings.denoiserMode;
     constants.sceneConstants.enableAlphaTestedGeometry = lightingSettings.enableAlphaTestedGeometry;
-    constants.visualizeRegirCells = lightingSettings.visualizeRegirCells;
+    constants.visualizeRegirCells = false;
 
     constants.lightBufferParams = isContext.GetLightBufferParameters();
     constants.localLightsRISBufferSegmentParams = isContext.GetLocalLightRISBufferSegmentParams();
     constants.environmentLightRISBufferSegmentParams = isContext.GetEnvironmentLightRISBufferSegmentParams();
     constants.runtimeParams = isContext.GetReSTIRDIContext().GetRuntimeParams();
     FillReSTIRDIConstants(constants.restirDI, isContext.GetReSTIRDIContext(), isContext.GetLightBufferParameters());
-    FillReGIRConstants(constants.regir, isContext.GetReGIRContext());
     FillReSTIRGIConstants(constants.restirGI, isContext.GetReSTIRGIContext());
 
     constants.localLightPdfTextureSize = m_localLightPdfTextureSize;
@@ -499,17 +422,6 @@ void LightingPasses::PrepareForLightSampling(
         };
 
         ExecuteComputePass(commandList, m_presampleEnvironmentMapPass, "PresampleEnvironmentMap", presampleDispatchSize, ProfilerSection::PresampleEnvMap);
-    }
-
-    if (isContext.IsReGIREnabled() &&
-        lightBufferParams.localLightBufferRegion.numLights > 0)
-    {
-        dm::int2 worldGridDispatchSize = {
-            dm::div_ceil(regirContext.GetReGIRLightSlotCount(), RTXDI_GRID_BUILD_GROUP_SIZE),
-            1
-        };
-
-        ExecuteComputePass(commandList, m_presampleReGIR, "PresampleReGIR", worldGridDispatchSize, ProfilerSection::PresampleReGIR);
     }
 }
 
