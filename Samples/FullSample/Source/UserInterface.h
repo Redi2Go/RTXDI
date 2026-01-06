@@ -89,8 +89,6 @@ enum DebugRenderOutput
     GBufferEmissive,
     DiffuseLighting,
     SpecularLighting,
-    DenoisedDiffuseLighting,
-    DenoisedSpecularLighting,
     RestirLuminance,
     PrevRestirLuminance,
     DiffuseConfidence,

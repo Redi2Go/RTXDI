@@ -1055,12 +1055,6 @@ public:
             case SpecularLighting:
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->SpecularLighting, &m_bindingCache);
                 break;
-            case DenoisedDiffuseLighting:
-                m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DenoisedDiffuseLighting, &m_bindingCache);
-                break;
-            case DenoisedSpecularLighting:
-                m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->DenoisedSpecularLighting, &m_bindingCache);
-                break;
             case RestirLuminance:
                 m_CommonPasses->BlitTexture(m_commandList, framebuffer, m_renderTargets->RestirLuminance, &m_bindingCache);
                 break;

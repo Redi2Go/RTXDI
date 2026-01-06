@@ -113,8 +113,8 @@ endif()
 
 add_subdirectory(Samples/FullSample/Shaders)
 add_subdirectory(Samples/FullSample/Source)
-add_subdirectory(Samples/MinimalSample/Shaders)
-add_subdirectory(Samples/MinimalSample/Source)
+#add_subdirectory(Samples/MinimalSample/Shaders)
+#add_subdirectory(Samples/MinimalSample/Source)
 add_subdirectory(Support/Tests/RtxdiRuntimeShaderTests)
 
 if (MSVC)
