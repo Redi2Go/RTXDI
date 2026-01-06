@@ -75,11 +75,6 @@ public:
         float confidenceHistoryLength = 0.75f;
 
         BRDFPathTracing_Parameters brdfptParams = GetDefaultBRDFPathTracingParams();
-        
-#if WITH_NRD
-        const nrd::HitDistanceParameters* reblurDiffHitDistanceParams = nullptr;
-        const nrd::HitDistanceParameters* reblurSpecHitDistanceParams = nullptr;
-#endif
     };
 
     LightingPasses(

@@ -23,10 +23,6 @@
 #include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/LightingPasses.h"
 
-#if WITH_NRD
-#include <NRD.h>
-#endif
-
 #include <optional>
 #include <string>
 
@@ -214,10 +210,6 @@ private:
     void GeneralRenderingSettings();
     void SamplingSettings();
     void PostProcessSettings();
-
-#ifdef WITH_NRD
-    void DenoiserSettings();
-#endif
 
     UIData& m_ui;
     std::shared_ptr<donut::app::RegisteredFont> m_fontOpenSans;

@@ -163,20 +163,6 @@ public:
         m_prepareLightsPass = std::make_unique<PrepareLightsPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
         m_lightingPasses = std::make_unique<LightingPasses>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
 
-
-#if WITH_DLSS
-        {
-#if DONUT_WITH_DX12
-            if (GetDevice()->getGraphicsAPI() == nvrhi::GraphicsAPI::D3D12)
-                m_dlss = DLSS::CreateDX12(GetDevice(), *m_shaderFactory);
-#endif
-#if DONUT_WITH_VULKAN
-            if (GetDevice()->getGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
-                m_dlss = DLSS::CreateVK(GetDevice(), *m_shaderFactory);
-#endif
-        }
-#endif
-
         LoadShaders();
 
         std::vector<std::string> profileNames;
@@ -936,17 +922,8 @@ public:
             m_sunLight->irradiance = 0.f;
         }
         
-#if WITH_NRD
-        if (!(m_nrd && m_nrd->IsAvailable()))
-            m_ui.enableDenoiser = false;
-
-        uint32_t denoiserMode = (m_ui.enableDenoiser)
-            ? (m_ui.denoisingMethod == nrd::Denoiser::RELAX_DIFFUSE_SPECULAR) ? DENOISER_MODE_RELAX : DENOISER_MODE_REBLUR
-            : DENOISER_MODE_OFF;
-#else
         m_ui.enableDenoiser = false;
         uint32_t denoiserMode = DENOISER_MODE_OFF;
-#endif
 
         m_commandList->open();
 
@@ -1335,14 +1312,6 @@ private:
 
     uint32_t m_renderFrameIndex = 0;
 
-#if WITH_NRD
-    std::unique_ptr<NrdIntegration> m_nrd;
-#endif
-
-#if WITH_DLSS
-    std::unique_ptr<DLSS> m_dlss;
-#endif
-
     UIData& m_ui;
     CommandLineArguments& m_args;
     uint m_framesSinceAnimation = 0;
@@ -1400,28 +1369,7 @@ int main(int argc, char** argv)
         deviceParams.deviceCreateInfoCallback = [](VkDeviceCreateInfo& info) {
             auto features = const_cast<VkPhysicalDeviceFeatures*>(info.pEnabledFeatures);
             features->fragmentStoresAndAtomics = VK_TRUE;
-#if WITH_DLSS
-            features->shaderStorageImageWriteWithoutFormat = VK_TRUE;
-#endif
         };
-
-#if WITH_DLSS
-        DLSS::GetRequiredVulkanExtensions(
-            deviceParams.optionalVulkanInstanceExtensions,
-            deviceParams.optionalVulkanDeviceExtensions);
-
-        // Currently, DLSS on Vulkan produces these validation errors. Silence them.
-        // Re-evaluate when updating DLSS.
-
-        // VkDeviceCreateInfo->ppEnabledExtensionNames must not contain both VK_KHR_buffer_device_address and VK_EXT_buffer_device_address
-        deviceParams.ignoredVulkanValidationMessageLocations.push_back(0xffffffff83a6bda8);
-        
-        // If VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT is set, bufferDeviceAddress must be enabled.
-        deviceParams.ignoredVulkanValidationMessageLocations.push_back(0xfffffffff972dfbf);
-
-        // vkCmdCuLaunchKernelNVX: required parameter pLaunchInfo->pParams specified as NULL.
-        deviceParams.ignoredVulkanValidationMessageLocations.push_back(0x79de34d4);
-#endif
 }
 #endif
 

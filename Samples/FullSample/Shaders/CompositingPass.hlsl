@@ -55,31 +55,6 @@ void main(uint2 globalIdx : SV_DispatchThreadID)
         float4 diffuse_illumination = t_Diffuse[illuminationPos].rgba;
         float4 specular_illumination = t_Specular[illuminationPos].rgba;
 
-#ifdef WITH_NRD
-        if(g_Const.denoiserMode != DENOISER_MODE_OFF)
-        {
-            float4 denoised_diffuse = t_DenoisedDiffuse[globalIdx].rgba;
-            float4 denoised_specular = t_DenoisedSpecular[globalIdx].rgba;
-
-            if (g_Const.denoiserMode == DENOISER_MODE_REBLUR)
-            {
-                denoised_diffuse = REBLUR_BackEnd_UnpackRadianceAndNormHitDist(denoised_diffuse);
-                denoised_specular = REBLUR_BackEnd_UnpackRadianceAndNormHitDist(denoised_specular);
-                
-                diffuse_illumination = REBLUR_BackEnd_UnpackRadianceAndNormHitDist(diffuse_illumination);
-                specular_illumination = REBLUR_BackEnd_UnpackRadianceAndNormHitDist(specular_illumination);
-            }
-
-            diffuse_illumination.rgb = lerp(denoised_diffuse.rgb,
-                clamp(diffuse_illumination.rgb, denoised_diffuse.rgb * g_Const.noiseClampLow, denoised_diffuse.rgb * g_Const.noiseClampHigh),
-                g_Const.noiseMix);
-
-            specular_illumination.rgb = lerp(denoised_specular.rgb,
-                clamp(specular_illumination.rgb, denoised_specular.rgb * g_Const.noiseClampLow, denoised_specular.rgb * g_Const.noiseClampHigh),
-                g_Const.noiseMix);
-        }
-#endif
-
         if (g_Const.enableTextures)
         {
             diffuse_illumination.rgb *= diffuseAlbedo;
