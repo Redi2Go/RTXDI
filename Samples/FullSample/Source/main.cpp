@@ -35,8 +35,6 @@
 
 #include "RenderPasses/AccumulationPass.h"
 #include "RenderPasses/CompositingPass.h"
-#include "RenderPasses/ConfidencePass.h"
-#include "RenderPasses/FilterGradientsPass.h"
 #include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/GenerateMipsPass.h"
 #include "RenderPasses/GlassPass.h"
@@ -150,8 +148,6 @@ public:
         m_profiler = std::make_shared<Profiler>(*GetDeviceManager());
         m_ui.resources->profiler = m_profiler;
 
-        m_filterGradientsPass = std::make_unique<FilterGradientsPass>(GetDevice(), m_shaderFactory);
-        m_confidencePass = std::make_unique<ConfidencePass>(GetDevice(), m_shaderFactory);
         m_compositingPass = std::make_unique<CompositingPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
         m_accumulationPass = std::make_unique<AccumulationPass>(GetDevice(), m_shaderFactory);
         m_gBufferPass = std::make_unique<RaytracedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
@@ -260,8 +256,6 @@ public:
     
     void LoadShaders()
     {
-        m_filterGradientsPass->CreatePipeline();
-        m_confidencePass->CreatePipeline();
         m_compositingPass->CreatePipeline();
         m_accumulationPass->CreatePipeline();
         m_gBufferPass->CreatePipeline(m_ui.useRayQuery);
@@ -530,10 +524,6 @@ public:
             m_postprocessGBufferPass->CreateBindingSet(*m_renderTargets);
 
             m_glassPass->CreateBindingSet(m_scene->GetTopLevelAS(), m_scene->GetPrevTopLevelAS(), *m_renderTargets);
-
-            m_filterGradientsPass->CreateBindingSet(*m_renderTargets);
-
-            m_confidencePass->CreateBindingSet(*m_renderTargets);
             
             m_accumulationPass->CreateBindingSet(*m_renderTargets);
 
@@ -823,15 +813,10 @@ public:
         UpdateReSTIRDIContextFromUI();
         UpdateReGIRContextFromUI();
         UpdateReSTIRGIContextFromUI();
-#if WITH_DLSS
-        if (!m_ui.dlssAvailable && m_ui.aaMode == AntiAliasingMode::DLSS)
-            m_ui.aaMode = AntiAliasingMode::TAA;
-#endif
 
         m_gBufferPass->NextFrame();
         m_postprocessGBufferPass->NextFrame();
         m_lightingPasses->NextFrame();
-        m_confidencePass->NextFrame();
         m_compositingPass->NextFrame();
         m_renderTargets->NextFrame();
         m_glassPass->NextFrame();
@@ -1027,13 +1012,6 @@ public:
                 restirDIContext,
                 m_view,
                 lightingSettings);
-
-            // Post-process the gradients into a confidence buffer usable by NRD
-            if (lightingSettings.enableGradients)
-            {
-                m_filterGradientsPass->Render(m_commandList, m_view, checkerboard);
-                m_confidencePass->Render(m_commandList, m_view, lightingSettings.gradientLogDarknessBias, lightingSettings.gradientSensitivity, lightingSettings.confidenceHistoryLength, checkerboard);
-            }
         }
 
         if (enableBrdfAndIndirectPass)
@@ -1237,8 +1215,6 @@ private:
     std::unique_ptr<RasterizedGBufferPass> m_rasterizedGBufferPass;
     std::unique_ptr<PostprocessGBufferPass> m_postprocessGBufferPass;
     std::unique_ptr<GlassPass> m_glassPass;
-    std::unique_ptr<FilterGradientsPass> m_filterGradientsPass;
-    std::unique_ptr<ConfidencePass> m_confidencePass;
     std::unique_ptr<CompositingPass> m_compositingPass;
     std::unique_ptr<AccumulationPass> m_accumulationPass;
     std::unique_ptr<PrepareLightsPass> m_prepareLightsPass;
