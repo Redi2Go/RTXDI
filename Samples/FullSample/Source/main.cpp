@@ -37,7 +37,6 @@
 #include "RenderPasses/CompositingPass.h"
 #include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/GenerateMipsPass.h"
-#include "RenderPasses/GlassPass.h"
 #include "RenderPasses/LightingPasses.h"
 #include "RenderPasses/PrepareLightsPass.h"
 #include "RenderPasses/RenderEnvironmentMapPass.h"
@@ -152,7 +151,6 @@ public:
         m_accumulationPass = std::make_unique<AccumulationPass>(GetDevice(), m_shaderFactory);
         m_rasterizedGBufferPass = std::make_unique<RasterizedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
         m_postprocessGBufferPass = std::make_unique<PostprocessGBufferPass>(GetDevice(), m_shaderFactory);
-        m_glassPass = std::make_unique<GlassPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
         m_prepareLightsPass = std::make_unique<PrepareLightsPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
         m_lightingPasses = std::make_unique<LightingPasses>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
 
@@ -258,7 +256,6 @@ public:
         m_compositingPass->CreatePipeline();
         m_accumulationPass->CreatePipeline();
         m_postprocessGBufferPass->CreatePipeline();
-        m_glassPass->CreatePipeline(m_ui.useRayQuery);
         m_prepareLightsPass->CreatePipeline();
     }
 
@@ -519,8 +516,6 @@ public:
 
             m_postprocessGBufferPass->CreateBindingSet(*m_renderTargets);
 
-            m_glassPass->CreateBindingSet(m_scene->GetTopLevelAS(), m_scene->GetPrevTopLevelAS(), *m_renderTargets);
-            
             m_accumulationPass->CreateBindingSet(*m_renderTargets);
 
             m_rasterizedGBufferPass->CreatePipeline(*m_renderTargets);
@@ -814,7 +809,6 @@ public:
         m_lightingPasses->NextFrame();
         m_compositingPass->NextFrame();
         m_renderTargets->NextFrame();
-        m_glassPass->NextFrame();
         m_scene->NextFrame();
         
         // Advance the TAA jitter offset at half frame rate if accumulation is used with
@@ -961,7 +955,6 @@ public:
         LightingPasses::RenderSettings lightingSettings = m_ui.lightingSettings;
         lightingSettings.enablePreviousTLAS &= m_ui.enableAnimations;
         lightingSettings.enableAlphaTestedGeometry = m_ui.gbufferSettings.enableAlphaTestedGeometry;
-        lightingSettings.enableTransparentGeometry = m_ui.gbufferSettings.enableTransparentGeometry;
         lightingSettings.denoiserMode = DENOISER_MODE_OFF;
         if (lightingSettings.denoiserMode == DENOISER_MODE_OFF)
             lightingSettings.enableGradients = false;
@@ -1045,17 +1038,6 @@ public:
             checkerboard,
             m_ui,
             *m_environmentLight);
-
-        if (m_ui.gbufferSettings.enableTransparentGeometry)
-        {
-            ProfilerScope scope(*m_profiler, m_commandList, ProfilerSection::Glass);
-
-            m_glassPass->Render(m_commandList, m_view,
-                *m_environmentLight,
-                m_ui.gbufferSettings.normalMapScale,
-                m_ui.gbufferSettings.enableMaterialReadback,
-                m_ui.gbufferSettings.materialReadbackPosition);
-        }
 
         Resolve(m_commandList, accumulationWeight);
 
@@ -1205,7 +1187,6 @@ private:
     std::unique_ptr<rtxdi::ImportanceSamplingContext> m_isContext;
     std::unique_ptr<RasterizedGBufferPass> m_rasterizedGBufferPass;
     std::unique_ptr<PostprocessGBufferPass> m_postprocessGBufferPass;
-    std::unique_ptr<GlassPass> m_glassPass;
     std::unique_ptr<CompositingPass> m_compositingPass;
     std::unique_ptr<AccumulationPass> m_accumulationPass;
     std::unique_ptr<PrepareLightsPass> m_prepareLightsPass;

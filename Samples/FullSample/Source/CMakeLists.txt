@@ -10,8 +10,6 @@ set(sources
 	"RenderPasses/GBufferPass.h"
 	"RenderPasses/GenerateMipsPass.cpp"
 	"RenderPasses/GenerateMipsPass.h"
-	"RenderPasses/GlassPass.cpp"
-	"RenderPasses/GlassPass.h"
 	"RenderPasses/LightingPasses.cpp"
 	"RenderPasses/LightingPasses.h"
 	"RenderPasses/PrepareLightsPass.cpp"

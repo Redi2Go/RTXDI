@@ -65,7 +65,6 @@ public:
 
         ibool enablePreviousTLAS = true;
         ibool enableAlphaTestedGeometry = true;
-        ibool enableTransparentGeometry = true;
         ibool enableRayCounts = true;
         ibool visualizeRegirCells = false;
         

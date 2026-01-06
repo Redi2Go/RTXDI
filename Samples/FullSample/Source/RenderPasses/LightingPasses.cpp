@@ -438,15 +438,7 @@ void LightingPasses::FillResamplingConstants(
     constants.enablePreviousTLAS = lightingSettings.enablePreviousTLAS;
     constants.denoiserMode = lightingSettings.denoiserMode;
     constants.sceneConstants.enableAlphaTestedGeometry = lightingSettings.enableAlphaTestedGeometry;
-    constants.sceneConstants.enableTransparentGeometry = lightingSettings.enableTransparentGeometry;
     constants.visualizeRegirCells = lightingSettings.visualizeRegirCells;
-#if WITH_NRD
-    if (lightingSettings.denoiserMode != DENOISER_MODE_OFF)
-    {
-        NrdHitDistanceParamsToFloat4(lightingSettings.reblurDiffHitDistanceParams, constants.reblurDiffHitDistParams);
-        NrdHitDistanceParamsToFloat4(lightingSettings.reblurSpecHitDistanceParams, constants.reblurSpecHitDistParams);
-    }
-#endif
 
     constants.lightBufferParams = isContext.GetLightBufferParameters();
     constants.localLightsRISBufferSegmentParams = isContext.GetLocalLightRISBufferSegmentParams();

@@ -1037,7 +1037,6 @@ void UserInterface::SceneSettings()
         ImGui::PopItemWidth();
 
         m_ui.resetAccumulation |= ImGui::Checkbox("Alpha-Tested Geometry", (bool*)&m_ui.gbufferSettings.enableAlphaTestedGeometry);
-        m_ui.resetAccumulation |= ImGui::Checkbox("Transparent Geometry", (bool*)&m_ui.gbufferSettings.enableTransparentGeometry);
 
         const auto& environmentMaps = m_ui.resources->scene->GetEnvironmentMaps();
 

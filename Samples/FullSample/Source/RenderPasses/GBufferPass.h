@@ -36,7 +36,6 @@ struct GBufferSettings
     bool enableMetalnessOverride = false;
     float normalMapScale = 1.f;
     ibool enableAlphaTestedGeometry = true;
-    ibool enableTransparentGeometry = true;
     float textureLodBias = -1.f;
 
     bool enableMaterialReadback = false;
