@@ -20,9 +20,6 @@
 #include <Rtxdi/DI/BoilingFilter.hlsli>
 #include <Rtxdi/DI/InitialSampling.hlsli>
 #include <Rtxdi/DI/SpatioTemporalResampling.hlsli>
-#if RTXDI_REGIR_MODE != RTXDI_REGIR_DISABLED
-#include "Rtxdi/ReGIR/ReGIRSampling.hlsli"
-#endif
 
 #include "../ShadingHelpers.hlsli"
 
@@ -60,9 +57,6 @@ void RayGen()
         sampleParams, g_Const.lightBufferParams, g_Const.restirDI.initialSamplingParams.localLightSamplingMode,
 #ifdef RTXDI_ENABLE_PRESAMPLING
         g_Const.localLightsRISBufferSegmentParams, g_Const.environmentLightRISBufferSegmentParams,
-#if RTXDI_REGIR_MODE != RTXDI_REGIR_DISABLED
-        g_Const.regir,
-#endif
 #endif
         lightSample);
 
@@ -135,13 +129,6 @@ void RayGen()
     u_RestirLuminance[GlobalIndex] = currLuminance * (reservoir.age > 0 ? 0 : 1);
 
     RTXDI_StoreDIReservoir(reservoir, g_Const.restirDI.reservoirBufferParams, GlobalIndex, g_Const.restirDI.bufferIndices.shadingInputBufferIndex);
-
-#if RTXDI_REGIR_MODE != RTXDI_REGIR_DISABLED
-    if (g_Const.visualizeRegirCells)
-    {
-        diffuse *= RTXDI_VisualizeReGIRCells(g_Const.regir, RAB_GetSurfaceWorldPos(surface));
-    }
-#endif
 
     StoreShadingOutput(GlobalIndex, pixelPosition, 
         surface.viewDepth, surface.material.roughness,  diffuse, specular, lightDistance, true, g_Const.restirDI.shadingParams.enableDenoiserInputPacking);

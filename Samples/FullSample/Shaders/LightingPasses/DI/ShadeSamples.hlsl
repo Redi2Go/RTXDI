@@ -14,10 +14,6 @@
 
 #include "Rtxdi/DI/Reservoir.hlsli"
 
-#if RTXDI_REGIR_MODE != RTXDI_REGIR_DISABLED
-#include "Rtxdi/ReGIR/ReGIRSampling.hlsli"
-#endif
-
 #include "../ShadingHelpers.hlsli"
 
 #if USE_RAY_QUERY
