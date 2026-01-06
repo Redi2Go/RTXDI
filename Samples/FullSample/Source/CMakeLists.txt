@@ -24,8 +24,6 @@ set(sources
 	"RenderPasses/RaytracingPass.h"
 	"RenderPasses/RenderEnvironmentMapPass.cpp"
 	"RenderPasses/RenderEnvironmentMapPass.h"
-	"RenderPasses/VisualizationPass.cpp"
-	"RenderPasses/VisualizationPass.h"
 	"AppDefines.h"
 	"main.cpp"
 	"Profiler.cpp"

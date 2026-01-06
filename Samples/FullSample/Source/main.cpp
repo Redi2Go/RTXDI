@@ -44,7 +44,6 @@
 #include "RenderPasses/LightingPasses.h"
 #include "RenderPasses/PrepareLightsPass.h"
 #include "RenderPasses/RenderEnvironmentMapPass.h"
-#include "RenderPasses/VisualizationPass.h"
 #include "Profiler.h"
 #include "RenderTargets.h"
 #include "RtxdiResources.h"
@@ -500,7 +499,6 @@ public:
             m_renderEnvironmentMapPass = nullptr;
             m_environmentMapPdfMipmapPass = nullptr;
             m_localLightPdfMipmapPass = nullptr;
-            m_visualizationPass = nullptr;
             m_ui.environmentMapDirty = 1;
 
             LoadShaders();
@@ -570,8 +568,6 @@ public:
             m_rasterizedGBufferPass->CreatePipeline(*m_renderTargets);
 
             m_compositingPass->CreateBindingSet(*m_renderTargets);
-
-            m_visualizationPass = nullptr;
 
             renderTargetsCreated = true;
         }
@@ -661,11 +657,6 @@ public:
         if (!m_bloomPass)
         {
             m_bloomPass = std::make_unique<render::BloomPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_renderTargets->ResolvedFramebuffer, m_upscaledView);
-        }
-
-        if (!m_visualizationPass || renderTargetsCreated || rtxdiResourcesCreated)
-        {
-            m_visualizationPass = std::make_unique<VisualizationPass>(GetDevice(), *m_CommonPasses, *m_shaderFactory, *m_renderTargets, *m_rtxdiResources);
         }
     }
 
@@ -902,7 +893,6 @@ public:
         m_lightingPasses->NextFrame();
         m_confidencePass->NextFrame();
         m_compositingPass->NextFrame();
-        m_visualizationPass->NextFrame();
         m_renderTargets->NextFrame();
         m_glassPass->NextFrame();
         m_scene->NextFrame();
@@ -1257,19 +1247,6 @@ public:
                 haveSignal = m_ui.indirectLightingMode == IndirectLightingMode::ReStirGI;
                 break;
             }
-
-            if (haveSignal)
-            {
-                m_visualizationPass->Render(
-                    m_commandList,
-                    m_renderTargets->LdrFramebuffer->GetFramebuffer(m_upscaledView),
-                    m_view,
-                    m_upscaledView,
-                    *m_isContext,
-                    inputBufferIndex,
-                    m_ui.visualizationMode,
-                    m_ui.aaMode == AntiAliasingMode::Accumulation);
-            }
         }
 
         switch (m_ui.debugRenderOutputBuffer)
@@ -1386,7 +1363,6 @@ private:
     std::unique_ptr<GenerateMipsPass> m_environmentMapPdfMipmapPass;
     std::unique_ptr<GenerateMipsPass> m_localLightPdfMipmapPass;
     std::unique_ptr<LightingPasses> m_lightingPasses;
-    std::unique_ptr<VisualizationPass> m_visualizationPass;
     std::unique_ptr<RtxdiResources> m_rtxdiResources;
     std::unique_ptr<engine::IesProfileLoader> m_iesProfileLoader;
     std::shared_ptr<Profiler> m_profiler;
