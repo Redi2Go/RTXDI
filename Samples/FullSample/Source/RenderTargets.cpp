@@ -60,10 +60,6 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.useClearValue = false;
     desc.clearValue = 0.f;
 
-    desc.format = nvrhi::Format::R32_FLOAT;
-    desc.debugName = "DeviceDepthUAV";
-    DeviceDepthUAV = device->createTexture(desc);
-
     desc.format = nvrhi::Format::R32_UINT;
     desc.debugName = "GBufferDiffuseAlbedo";
     GBufferDiffuseAlbedo = device->createTexture(desc);
@@ -146,20 +142,6 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.format = nvrhi::Format::RGBA16_FLOAT;
     desc.debugName = "SpecularLighting";
     SpecularLighting = device->createTexture(desc);
-
-    desc.format = nvrhi::Format::RGBA16_FLOAT;
-    desc.debugName = "DenoisedDiffuseLighting";
-    DenoisedDiffuseLighting = device->createTexture(desc);
-
-    desc.format = nvrhi::Format::RGBA16_FLOAT;
-    desc.debugName = "DenoisedSpecularLighting";
-    DenoisedSpecularLighting = device->createTexture(desc);
-
-    desc.format = nvrhi::Format::RGBA16_SNORM;
-    desc.debugName = "TaaFeedback1";
-    TaaFeedback1 = device->createTexture(desc);
-    desc.debugName = "TaaFeedback2";
-    TaaFeedback2 = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA16_FLOAT;
     desc.debugName = "HdrColor";

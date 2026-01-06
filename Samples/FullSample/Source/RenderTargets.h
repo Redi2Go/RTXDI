@@ -23,7 +23,6 @@ class RenderTargets
 {
 public:
     nvrhi::TextureHandle DeviceDepth;
-    nvrhi::TextureHandle DeviceDepthUAV;
     nvrhi::TextureHandle Depth;
     nvrhi::TextureHandle PrevDepth;
     nvrhi::TextureHandle GBufferDiffuseAlbedo;
@@ -42,10 +41,6 @@ public:
     nvrhi::TextureHandle LdrColor;
     nvrhi::TextureHandle DiffuseLighting;
     nvrhi::TextureHandle SpecularLighting;
-    nvrhi::TextureHandle DenoisedDiffuseLighting;
-    nvrhi::TextureHandle DenoisedSpecularLighting;
-    nvrhi::TextureHandle TaaFeedback1;
-    nvrhi::TextureHandle TaaFeedback2;
     nvrhi::TextureHandle ResolvedColor;
     nvrhi::TextureHandle AccumulatedColor;
     nvrhi::TextureHandle RestirLuminance;

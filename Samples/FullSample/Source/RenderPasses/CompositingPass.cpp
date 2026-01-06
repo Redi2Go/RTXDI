@@ -52,8 +52,6 @@ CompositingPass::CompositingPass(
         nvrhi::BindingLayoutItem::Texture_SRV(4),
         nvrhi::BindingLayoutItem::Texture_SRV(5),
         nvrhi::BindingLayoutItem::Texture_SRV(6),
-        nvrhi::BindingLayoutItem::Texture_SRV(7),
-        nvrhi::BindingLayoutItem::Texture_SRV(8),
         nvrhi::BindingLayoutItem::Texture_UAV(0),
         nvrhi::BindingLayoutItem::Texture_UAV(1),
         nvrhi::BindingLayoutItem::Sampler(0),
@@ -89,8 +87,6 @@ void CompositingPass::CreateBindingSet(const RenderTargets& renderTargets)
 
         nvrhi::BindingSetItem::Texture_SRV(5, renderTargets.DiffuseLighting),
         nvrhi::BindingSetItem::Texture_SRV(6, renderTargets.SpecularLighting),
-        nvrhi::BindingSetItem::Texture_SRV(7, renderTargets.DenoisedDiffuseLighting),
-        nvrhi::BindingSetItem::Texture_SRV(8, renderTargets.DenoisedSpecularLighting),
         nvrhi::BindingSetItem::Texture_UAV(0, renderTargets.HdrColor),
         nvrhi::BindingSetItem::Texture_UAV(1, renderTargets.MotionVectors),
         nvrhi::BindingSetItem::Sampler(0, m_commonPasses->m_LinearWrapSampler),
