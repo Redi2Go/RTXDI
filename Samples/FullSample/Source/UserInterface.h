@@ -63,8 +63,7 @@ enum class QualityPreset : uint32_t
 
 enum class AntiAliasingMode : uint32_t
 {
-    None,
-    Accumulation
+    None
 };
 
 struct UIResources
@@ -118,7 +117,7 @@ struct UIData
 
     QualityPreset preset = QualityPreset::Medium;
 
-    AntiAliasingMode aaMode = AntiAliasingMode::Accumulation;
+    AntiAliasingMode aaMode = AntiAliasingMode::None;
 
     uint32_t numAccumulatedFrames = 1;
 

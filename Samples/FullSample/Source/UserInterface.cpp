@@ -714,20 +714,12 @@ void UserInterface::PostProcessSettings()
     {
         AntiAliasingMode previousAAMode = m_ui.aaMode;
         ImGui::RadioButton("No AA", (int*)&m_ui.aaMode, (int)AntiAliasingMode::None);
-        ImGui::SameLine();
-        ImGui::RadioButton("Accumulation", (int*)&m_ui.aaMode, (int)AntiAliasingMode::Accumulation);
         if (m_ui.aaMode != previousAAMode)
             m_ui.resetAccumulation = true;
 
         ImGui::PushItemWidth(50.f);
         m_ui.resetAccumulation |= ImGui::DragInt("Accum. Frame Limit", (int*)&m_ui.framesToAccumulate, 1.f, 0, 1024);
         ImGui::PopItemWidth();
-
-        if (m_ui.aaMode == AntiAliasingMode::Accumulation)
-        {
-            ImGui::SameLine();
-            ImGui::TextDisabled("// %d frame(s)", m_ui.numAccumulatedFrames);
-        }
 
         // Reference image UI
         {

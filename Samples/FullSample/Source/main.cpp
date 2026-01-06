@@ -33,7 +33,6 @@
 #include <taskflow/taskflow.hpp>
 #endif
 
-#include "RenderPasses/AccumulationPass.h"
 #include "RenderPasses/CompositingPass.h"
 #include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/GenerateMipsPass.h"
@@ -148,7 +147,6 @@ public:
         m_ui.resources->profiler = m_profiler;
 
         m_compositingPass = std::make_unique<CompositingPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
-        m_accumulationPass = std::make_unique<AccumulationPass>(GetDevice(), m_shaderFactory);
         m_rasterizedGBufferPass = std::make_unique<RasterizedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
         m_postprocessGBufferPass = std::make_unique<PostprocessGBufferPass>(GetDevice(), m_shaderFactory);
         m_prepareLightsPass = std::make_unique<PrepareLightsPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
@@ -254,7 +252,6 @@ public:
     void LoadShaders()
     {
         m_compositingPass->CreatePipeline();
-        m_accumulationPass->CreatePipeline();
         m_postprocessGBufferPass->CreatePipeline();
         m_prepareLightsPass->CreatePipeline();
     }
@@ -365,7 +362,6 @@ public:
         m_renderTargets = nullptr;
         m_isContext = nullptr;
         m_rtxdiResources = nullptr;
-        m_temporalAntiAliasingPass = nullptr;
         m_toneMappingPass = nullptr;
     }
 
@@ -410,20 +406,11 @@ public:
     {
         nvrhi::Viewport windowViewport((float)renderWidth, (float)renderHeight);
 
-        if (m_temporalAntiAliasingPass)
-            m_temporalAntiAliasingPass->SetJitter(m_ui.temporalJitter);
-
         nvrhi::Viewport renderViewport = windowViewport;
         renderViewport.maxX = roundf(renderViewport.maxX * m_ui.resolutionScale);
         renderViewport.maxY = roundf(renderViewport.maxY * m_ui.resolutionScale);
 
         m_view.SetViewport(renderViewport);
-
-        if (m_ui.enablePixelJitter && m_temporalAntiAliasingPass)
-        {
-            m_view.SetPixelOffset(m_temporalAntiAliasingPass->GetCurrentPixelOffset());
-        }
-        else
         {
             m_view.SetPixelOffset(0.f);
         }
@@ -456,7 +443,6 @@ public:
             GetDevice()->waitForIdle();
 
             m_shaderFactory->ClearCache();
-            m_temporalAntiAliasingPass = nullptr;
             m_renderEnvironmentMapPass = nullptr;
             m_environmentMapPdfMipmapPass = nullptr;
             m_localLightPdfMipmapPass = nullptr;
@@ -512,8 +498,6 @@ public:
             m_profiler->SetRenderTargets(m_renderTargets);
 
             m_postprocessGBufferPass->CreateBindingSet(*m_renderTargets);
-
-            m_accumulationPass->CreateBindingSet(*m_renderTargets);
 
             m_rasterizedGBufferPass->CreatePipeline(*m_renderTargets);
 
@@ -582,20 +566,6 @@ public:
 
         m_ui.reloadShaders = false;
 
-        if (!m_temporalAntiAliasingPass)
-        {
-            render::TemporalAntiAliasingPass::CreateParameters taaParams;
-            taaParams.motionVectors = m_renderTargets->MotionVectors;
-            taaParams.unresolvedColor = m_renderTargets->HdrColor;
-            taaParams.resolvedColor = m_renderTargets->ResolvedColor;
-            taaParams.feedback1 = m_renderTargets->TaaFeedback1;
-            taaParams.feedback2 = m_renderTargets->TaaFeedback2;
-            taaParams.useCatmullRomFilter = true;
-
-            m_temporalAntiAliasingPass = std::make_unique<render::TemporalAntiAliasingPass>(
-                GetDevice(), m_shaderFactory, m_CommonPasses, m_view, taaParams);
-        }
-
         exposureResetRequired = false;
         if (!m_toneMappingPass)
         {
@@ -637,12 +607,6 @@ public:
             blitParams.sourceBox.m_maxs.y = m_view.GetViewport().height() / m_upscaledView.GetViewport().height();
             blitParams.targetFramebuffer = m_renderTargets->ResolvedFramebuffer->GetFramebuffer(m_upscaledView);
             m_CommonPasses->BlitTexture(commandList, blitParams);
-            break;
-        }
-
-        case AntiAliasingMode::Accumulation: {
-            m_accumulationPass->Render(commandList, m_view, m_upscaledView, accumulationWeight);
-            m_CommonPasses->BlitTexture(commandList, m_renderTargets->ResolvedFramebuffer->GetFramebuffer(m_upscaledView), m_renderTargets->AccumulatedColor);
             break;
         }
         }
@@ -799,29 +763,9 @@ public:
         m_renderTargets->NextFrame();
         m_scene->NextFrame();
         
-        // Advance the TAA jitter offset at half frame rate if accumulation is used with
-        // checkerboard rendering. Otherwise, the jitter pattern resonates with the checkerboard,
-        // and stipple patterns appear in the accumulated results.
-        if (!((m_ui.aaMode == AntiAliasingMode::Accumulation) && (m_isContext->GetReSTIRDIContext().GetStaticParameters().CheckerboardSamplingMode != rtxdi::CheckerboardMode::Off) && (GetFrameIndex() & 1)))
-        {
-            m_temporalAntiAliasingPass->AdvanceFrame();
-        }
-        
         bool cameraIsStatic = m_previousViewValid && m_view.GetViewMatrix() == m_viewPrevious.GetViewMatrix();
-        if (cameraIsStatic && (m_ui.aaMode == AntiAliasingMode::Accumulation) && !m_ui.resetAccumulation)
-        {
-            m_ui.numAccumulatedFrames += 1;
-
-            if (m_ui.framesToAccumulate > 0)
-                m_ui.numAccumulatedFrames = std::min(m_ui.numAccumulatedFrames, m_ui.framesToAccumulate);
-
-            m_profiler->EnableAccumulation(true);
-        }
-        else
-        {
-            m_ui.numAccumulatedFrames = 1;
-            m_profiler->EnableAccumulation(m_ui.animationFrame.has_value());
-        }
+        m_ui.numAccumulatedFrames = 1;
+        m_profiler->EnableAccumulation(m_ui.animationFrame.has_value());
 
         float accumulationWeight = 1.f / (float)m_ui.numAccumulatedFrames;
 
@@ -974,7 +918,7 @@ public:
                 *m_isContext,
                 m_view, m_viewPrevious,
                 lightingSettings,
-                /* enableAccumulation = */ m_ui.aaMode == AntiAliasingMode::Accumulation);
+                /* enableAccumulation = */ false);
         }
 
         if (enableDirectReStirPass)
@@ -1005,7 +949,7 @@ public:
                 /* enableIndirect = */ enableIndirect,
                 /* enableAdditiveBlend = */ enableDirectReStirPass,
                 /* enableEmissiveSurfaces = */ m_ui.directLightingMode == DirectLightingMode::Brdf,
-                /* enableAccumulation = */ m_ui.aaMode == AntiAliasingMode::Accumulation,
+                /* enableAccumulation = */ false,
                 enableReSTIRGI
                 );
         }
@@ -1161,7 +1105,6 @@ private:
     std::shared_ptr<SampleScene> m_scene;
     std::shared_ptr<engine::DescriptorTableManager> m_descriptorTableManager;
     std::unique_ptr<render::ToneMappingPass> m_toneMappingPass;
-    std::unique_ptr<render::TemporalAntiAliasingPass> m_temporalAntiAliasingPass;
     std::shared_ptr<RenderTargets> m_renderTargets;
     app::FirstPersonCamera m_camera;
     engine::PlanarView m_view;
@@ -1176,7 +1119,6 @@ private:
     std::unique_ptr<RasterizedGBufferPass> m_rasterizedGBufferPass;
     std::unique_ptr<PostprocessGBufferPass> m_postprocessGBufferPass;
     std::unique_ptr<CompositingPass> m_compositingPass;
-    std::unique_ptr<AccumulationPass> m_accumulationPass;
     std::unique_ptr<PrepareLightsPass> m_prepareLightsPass;
     std::unique_ptr<RenderEnvironmentMapPass> m_renderEnvironmentMapPass;
     std::unique_ptr<GenerateMipsPass> m_environmentMapPdfMipmapPass;

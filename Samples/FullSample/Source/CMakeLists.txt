@@ -2,8 +2,6 @@ set(project FullSample)
 set(folder "RTXDI SDK")
 
 set(sources
-	"RenderPasses/AccumulationPass.cpp"
-	"RenderPasses/AccumulationPass.h"
 	"RenderPasses/CompositingPass.cpp"
 	"RenderPasses/CompositingPass.h"
 	"RenderPasses/GBufferPass.cpp"
@@ -18,7 +16,6 @@ set(sources
 	"RenderPasses/RaytracingPass.h"
 	"RenderPasses/RenderEnvironmentMapPass.cpp"
 	"RenderPasses/RenderEnvironmentMapPass.h"
-	"AppDefines.h"
 	"main.cpp"
 	"Profiler.cpp"
 	"Profiler.h"

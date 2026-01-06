@@ -29,13 +29,10 @@ set(shaders
    LightingPasses/RtxdiApplicationBridge/RtxdiApplicationBridge.hlsli
    LightingPasses/ShadeSecondarySurfaces.hlsl
    LightingPasses/ShadingHelpers.hlsli
-   AccumulationPass.hlsl
    BRDFPTParameters.h
    CompositingPass.hlsl
    GBufferHelpers.hlsli
-   GlassPass.hlsl
    HelperFunctions.hlsli
-   GlassPass.hlsl
    Helperfunctions.hlsli
    LightShaping.hlsli
    PolymorphicLight.hlsli

@@ -16,7 +16,6 @@
 
 #include <Rtxdi/DI/ReSTIRDIParameters.h>
 #include <Rtxdi/GI/ReSTIRGIParameters.h>
-#include <Rtxdi/ReGIR/ReGIRParameters.h>
 
 #include "BRDFPTParameters.h"
 
