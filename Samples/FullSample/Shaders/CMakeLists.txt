@@ -2,12 +2,6 @@
 include("${DONUT_PATH}/compileshaders.cmake")
 
 set(shaders
-   DebugViz/NDirOctUNorm32Viz.hlsl
-   DebugViz/PackedR11G11B10UFloatViz.hlsl
-   DebugViz/PackedR8G8B8A8GammaUFloatViz.hlsl
-   DenoisingPasses/ComputeGradients.hlsl
-   DenoisingPasses/ConfidencePass.hlsl
-   DenoisingPasses/FilterGradientsPass.hlsl
    LightingPasses/DI/FusedResampling.hlsl
    LightingPasses/DI/GenerateInitialSamples.hlsl
    LightingPasses/DI/ShadeSamples.hlsl
@@ -38,7 +32,6 @@ set(shaders
    AccumulationPass.hlsl
    BRDFPTParameters.h
    CompositingPass.hlsl
-   DlssExposure.hlsl
    GBufferHelpers.hlsli
    GlassPass.hlsl
    HelperFunctions.hlsli
@@ -53,9 +46,7 @@ set(shaders
    RaytracedGBuffer.hlsl
    RenderEnvironmentMap.hlsl
    SceneGeometry.hlsli
-   ShaderParameters.h
-   VisualizeConfidence.hlsl
-   VisualizeHdrSignals.hlsl)
+   ShaderParameters.h)
 
 # Organize MSVS filters (the little folders in the solution explorer) to match the folder structure
 foreach(source IN LISTS shaders)

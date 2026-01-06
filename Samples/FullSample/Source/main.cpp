@@ -700,22 +700,6 @@ public:
             m_CommonPasses->BlitTexture(commandList, m_renderTargets->ResolvedFramebuffer->GetFramebuffer(m_upscaledView), m_renderTargets->AccumulatedColor);
             break;
         }
-
-        case AntiAliasingMode::TAA: {
-            auto taaParams = m_ui.taaParams;
-            if (m_ui.resetAccumulation)
-                taaParams.newFrameWeight = 1.f;
-
-            m_temporalAntiAliasingPass->TemporalResolve(commandList, taaParams, m_previousViewValid, m_view, m_upscaledView);
-            break;
-        }
-
-#if WITH_DLSS
-        case AntiAliasingMode::DLSS: {
-            m_dlss->Render(commandList, *m_renderTargets, m_toneMappingPass->GetExposureBuffer(), m_ui.dlssExposureScale, m_ui.dlssSharpness, m_ui.rasterizeGBuffer, m_ui.resetAccumulation, m_view, m_viewPrevious);
-            break;
-        }
-#endif
         }
     }
 

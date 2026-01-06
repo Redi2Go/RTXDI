@@ -68,11 +68,7 @@ enum class QualityPreset : uint32_t
 enum class AntiAliasingMode : uint32_t
 {
     None,
-    Accumulation,
-    TAA,
-#ifdef WITH_DLSS
-    DLSS,
-#endif
+    Accumulation
 };
 
 struct UIResources
@@ -128,11 +124,7 @@ struct UIData
 
     QualityPreset preset = QualityPreset::Medium;
 
-#ifdef WITH_DLSS
-    AntiAliasingMode aaMode = AntiAliasingMode::DLSS;
-#else
-    AntiAliasingMode aaMode = AntiAliasingMode::TAA;
-#endif
+    AntiAliasingMode aaMode = AntiAliasingMode::Accumulation;
 
     uint32_t numAccumulatedFrames = 1;
 
@@ -208,8 +200,6 @@ struct UIData
         ReSTIRGI_SpatialResamplingParameters spatialResamplingParams;
         ReSTIRGI_FinalShadingParameters finalShadingParams;
     } restirGI;
-
-    donut::render::TemporalAntiAliasingParameters taaParams;
 
     donut::render::TemporalAntiAliasingJitter temporalJitter = donut::render::TemporalAntiAliasingJitter::Halton;
 

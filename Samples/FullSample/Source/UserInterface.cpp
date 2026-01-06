@@ -46,11 +46,7 @@
 using namespace donut;
 
 UIData::UIData()
-{
-    taaParams.newFrameWeight = 0.04f;
-    taaParams.maxRadiance = 200.f;
-    taaParams.clampingFactor = 1.3f;
-    
+{    
     restirDI.resamplingMode = rtxdi::ReSTIRDI_ResamplingMode::TemporalAndSpatial;
     restirDI.initialSamplingParams = rtxdi::GetDefaultReSTIRDIInitialSamplingParams();
     restirDI.temporalResamplingParams = rtxdi::GetDefaultReSTIRDITemporalResamplingParams();
@@ -838,15 +834,6 @@ void UserInterface::PostProcessSettings()
         ImGui::RadioButton("No AA", (int*)&m_ui.aaMode, (int)AntiAliasingMode::None);
         ImGui::SameLine();
         ImGui::RadioButton("Accumulation", (int*)&m_ui.aaMode, (int)AntiAliasingMode::Accumulation);
-        ImGui::SameLine();
-        ImGui::RadioButton("TAAU", (int*)&m_ui.aaMode, (int)AntiAliasingMode::TAA);
-#if WITH_DLSS
-        if (m_ui.dlssAvailable)
-        {
-            ImGui::SameLine();
-            ImGui::RadioButton("DLSS", (int*)&m_ui.aaMode, (int)AntiAliasingMode::DLSS);
-        }
-#endif
         if (m_ui.aaMode != previousAAMode)
             m_ui.resetAccumulation = true;
 

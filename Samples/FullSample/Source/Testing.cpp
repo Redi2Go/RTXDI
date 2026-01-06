@@ -41,12 +41,6 @@ std::istream& operator>> (std::istream& is, AntiAliasingMode& mode)
         mode = AntiAliasingMode::None;
     else if (s == "ACC")
         mode = AntiAliasingMode::Accumulation;
-    else if (s == "TAA")
-        mode = AntiAliasingMode::TAA;
-#if WITH_DLSS
-    else if (s == "DLSS")
-        mode = AntiAliasingMode::DLSS;
-#endif
     else
         throw cxxopts::exceptions::exception("Unrecognized value passed to the --aa-mode argument.");
     
