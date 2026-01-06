@@ -53,7 +53,6 @@ set(folder "RTXDI SDK")
 set(shaders_target FullSampleShaders)
 
 add_custom_target(${shaders_target}
-    DEPENDS ShaderMake
     SOURCES ${shaders} Shaders.cfg)
 
 set (OUTPUT_PATH_BASE "${CMAKE_BINARY_DIR}/bin/shaders/full-sample")
@@ -64,23 +63,30 @@ set (OUTPUT_PATH_BASE "${CMAKE_BINARY_DIR}/bin/shaders/full-sample")
      set (USE_API_OPTION "")
  endif()
 
+set(DXC_SPIRV_PATH "" CACHE STRING "Path to dxc (SPIR-V capable)")
+if(DXC_SPIRV_PATH STREQUAL "")
+    message(FATAL_ERROR "DXC_SPIRV_PATH must be set (e.g. -DDXC_SPIRV_PATH=/path/to/dxc)")
+endif()
+
+set(SHADERMAKE_EXE_PATH "" CACHE STRING "Path to shadermake executable")
+if(SHADERMAKE_EXE_PATH STREQUAL "")
+    message(FATAL_ERROR "SHADERMAKE_EXE_PATH must be set (e.g. -DSHADERMAKE_EXE_PATH=/path/to/shadermake)")
+endif()
+
 set(VULKAN_COMPILER_OPTIONS
       --platform SPIRV
       --shaderModel 6_5
       --vulkanVersion 1.2
       --binaryBlob
       --outputExt .bin
-      -I ${DONUT_SHADER_INCLUDE_DIR}
       -I ${RTXDI_RUNTIME_INCLUDE_PATH}
       --relaxedInclude "../Types.h"
-      ${NRD_OPTIONS}
       ${USE_API_OPTION}
-      ${NVRHI_DEFAULT_VK_REGISTER_OFFSETS}
       -D SPIRV
       --compiler ${DXC_SPIRV_PATH})
 
    add_custom_command(TARGET ${shaders_target} PRE_BUILD
-                     COMMAND ShaderMake
+                     COMMAND ${SHADERMAKE_EXE_PATH}
                               --config ${CMAKE_CURRENT_SOURCE_DIR}/Shaders.cfg
                               --out ${OUTPUT_PATH_BASE}/spirv
                               ${VULKAN_COMPILER_OPTIONS})
