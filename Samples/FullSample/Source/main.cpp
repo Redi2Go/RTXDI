@@ -47,7 +47,6 @@
 #include "RenderTargets.h"
 #include "RtxdiResources.h"
 #include "SampleScene.h"
-#include "Testing.h"
 #include "UserInterface.h"
 
 #ifndef _WIN32
@@ -69,11 +68,10 @@ static int g_ExitCode = 0;
 class SceneRenderer : public app::ApplicationBase
 {
 public:
-    SceneRenderer(app::DeviceManager* deviceManager, UIData& ui, CommandLineArguments& args)
+    SceneRenderer(app::DeviceManager* deviceManager, UIData& ui)
         : ApplicationBase(deviceManager)
         , m_bindingCache(deviceManager->GetDevice())
         , m_ui(ui)
-        , m_args(args)
     { 
         m_ui.resources->camera = &m_camera;
     }
@@ -360,9 +358,6 @@ public:
         if (m_ui.isLoading)
             return;
 
-        if (!m_args.saveFrameFileName.empty())
-            fElapsedTimeSeconds = 1.f / 60.f;
-
         m_camera.Animate(fElapsedTimeSeconds);
 
         if (m_ui.enableAnimations)
@@ -374,10 +369,6 @@ public:
 
     virtual void BackBufferResized(const uint32_t width, const uint32_t height, const uint32_t sampleCount) override
     {
-        // If the render size is overridden from the command line, ignore the window size.
-        if (m_args.renderWidth > 0 && m_args.renderHeight > 0)
-            return;
-
         if (m_renderTargets && m_renderTargets->Size.x == int(width) && m_renderTargets->Size.y == int(height))
             return;
 
@@ -776,12 +767,6 @@ public:
             {
                 m_ui.benchmarkResults = m_profiler->GetAsText();
                 m_ui.animationFrame.reset();
-
-                if (m_args.benchmark)
-                {
-                    glfwSetWindowShouldClose(GetDeviceManager()->GetWindow(), GLFW_TRUE);
-                    log::info("BENCHMARK RESULTS >>>\n\n%s<<<", m_ui.benchmarkResults.c_str());
-                }
             }
         }
 
@@ -831,11 +816,6 @@ public:
         const auto& fbinfo = framebuffer->getFramebufferInfo();
         uint32_t renderWidth = fbinfo.width;
         uint32_t renderHeight = fbinfo.height;
-        if (m_args.renderWidth > 0 && m_args.renderHeight > 0)
-        {
-            renderWidth = m_args.renderWidth;
-            renderHeight = m_args.renderHeight;
-        }
         SetupView(renderWidth, renderHeight, activeCamera);
         SetupRenderPasses(renderWidth, renderHeight, exposureResetRequired);
         if (!m_ui.freezeRegirPosition)
@@ -1217,15 +1197,6 @@ public:
 
         m_commandList->close();
         GetDevice()->executeCommandList(m_commandList);
-
-        if (!m_args.saveFrameFileName.empty() && m_renderFrameIndex == m_args.saveFrameIndex)
-        {
-            bool success = SaveTexture(GetDevice(), m_renderTargets->LdrColor, m_args.saveFrameFileName.c_str());
-
-            g_ExitCode = success ? 0 : 1;
-            
-            glfwSetWindowShouldClose(GetDeviceManager()->GetWindow(), 1);
-        }
         
         m_ui.gbufferSettings.enableMaterialReadback = false;
         
@@ -1282,7 +1253,6 @@ private:
     uint32_t m_renderFrameIndex = 0;
 
     UIData& m_ui;
-    CommandLineArguments& m_args;
     uint m_framesSinceAnimation = 0;
     bool m_previousViewValid = false;
     time_point<steady_clock> m_previousFrameTimeStamp;
@@ -1307,8 +1277,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int main(int argc, char** argv)
 #endif
 {
-    log::SetCallback(&ApplicationLogCallback);
-    
     app::DeviceCreationParameters deviceParams;
     deviceParams.swapChainBufferCount = 3;
     deviceParams.enableRayTracingExtensions = true;
@@ -1318,33 +1286,20 @@ int main(int argc, char** argv)
     deviceParams.infoLogSeverity = log::Severity::Debug;
 
     UIData ui;
-    CommandLineArguments args;
-
-#if defined(_WIN32) && !defined(IS_CONSOLE_APP)
-    ProcessCommandLine(__argc, __argv, deviceParams, ui, args);
-#else
-    ProcessCommandLine(argc, argv, deviceParams, ui, args);
-#endif
-
-    if (args.verbose)
-        log::SetMinSeverity(log::Severity::Debug);
     
-    app::DeviceManager* deviceManager = app::DeviceManager::Create(args.graphicsApi);
+    app::DeviceManager* deviceManager = app::DeviceManager::Create(nvrhi::GraphicsAPI::VULKAN);
 
 #if DONUT_WITH_VULKAN
-    if (args.graphicsApi == nvrhi::GraphicsAPI::VULKAN)
-    {
-        // Set the extra device feature bit(s)
-        deviceParams.deviceCreateInfoCallback = [](VkDeviceCreateInfo& info) {
-            auto features = const_cast<VkPhysicalDeviceFeatures*>(info.pEnabledFeatures);
-            features->fragmentStoresAndAtomics = VK_TRUE;
+    // Set the extra device feature bit(s)
+    deviceParams.deviceCreateInfoCallback = [](VkDeviceCreateInfo& info) {
+        auto features = const_cast<VkPhysicalDeviceFeatures*>(info.pEnabledFeatures);
+        features->fragmentStoresAndAtomics = VK_TRUE;
         };
-}
 #endif
 
     const char* apiString = nvrhi::utils::GraphicsAPIToString(deviceManager->GetGraphicsAPI());
 
-    std::string windowTitle = std::string(g_ApplicationTitle) + " (" + std::string(apiString) + ")";
+    std::string windowTitle = std::string("RTXDI") + " (" + std::string(apiString) + ")";
     
     log::SetErrorMessageCaption(windowTitle.c_str());
 
@@ -1368,31 +1323,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-#if DONUT_WITH_DX12
-    if (args.graphicsApi == nvrhi::GraphicsAPI::D3D12 && args.disableBackgroundOptimization)
     {
-        // On DX12, optionally disable the background shader optimization because it leads to stutter on some NV driver versions (496.61 specifically).
-        
-        nvrhi::RefCountPtr<ID3D12Device> device = (ID3D12Device*)deviceManager->GetDevice()->getNativeObject(nvrhi::ObjectTypes::D3D12_Device);
-        nvrhi::RefCountPtr<ID3D12Device6> device6;
-
-        if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&device6))))
-        {
-            HRESULT hr = device6->SetBackgroundProcessingMode(
-                D3D12_BACKGROUND_PROCESSING_MODE_DISABLE_PROFILING_BY_SYSTEM,
-                D3D12_MEASUREMENTS_ACTION_DISCARD_PREVIOUS,
-                nullptr, nullptr);
-
-            if (FAILED(hr))
-            {
-                log::info("Call to ID3D12Device6::SetBackgroundProcessingMode(...) failed, HRESULT = 0x%08x. Expect stutter.", hr);
-            }
-        }
-    }
-#endif
-
-    {
-        SceneRenderer sceneRenderer(deviceManager, ui, args);
+        SceneRenderer sceneRenderer(deviceManager, ui);
         if (sceneRenderer.Init())
         {
             UserInterface userInterface(deviceManager, *sceneRenderer.GetRootFs(), ui);

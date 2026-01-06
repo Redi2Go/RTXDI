@@ -35,8 +35,6 @@ set(sources
 	"RtxdiResources.h"
 	"SampleScene.cpp"
 	"SampleScene.h"
-	"Testing.cpp"
-	"Testing.h"
 	"UserInterface.cpp"
 	"UserInterface.h")
 
