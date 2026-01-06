@@ -26,8 +26,6 @@ Texture2D<uint> t_GBufferSpecularRough : register(t3);
 Texture2D<float4> t_GBufferEmissive : register(t4);
 Texture2D t_Diffuse : register(t5);
 Texture2D t_Specular : register(t6);
-Texture2D t_DenoisedDiffuse : register(t7);
-Texture2D t_DenoisedSpecular : register(t8);
 
 SamplerState s_EnvironmentSampler : register(s0);
 
