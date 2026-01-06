@@ -150,7 +150,6 @@ public:
 
         m_compositingPass = std::make_unique<CompositingPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
         m_accumulationPass = std::make_unique<AccumulationPass>(GetDevice(), m_shaderFactory);
-        m_gBufferPass = std::make_unique<RaytracedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
         m_rasterizedGBufferPass = std::make_unique<RasterizedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
         m_postprocessGBufferPass = std::make_unique<PostprocessGBufferPass>(GetDevice(), m_shaderFactory);
         m_glassPass = std::make_unique<GlassPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
@@ -258,7 +257,6 @@ public:
     {
         m_compositingPass->CreatePipeline();
         m_accumulationPass->CreatePipeline();
-        m_gBufferPass->CreatePipeline(m_ui.useRayQuery);
         m_postprocessGBufferPass->CreatePipeline();
         m_glassPass->CreatePipeline(m_ui.useRayQuery);
         m_prepareLightsPass->CreatePipeline();
@@ -518,8 +516,6 @@ public:
             m_renderTargets = std::make_shared<RenderTargets>(GetDevice(), int2((int)renderWidth, (int)renderHeight));
 
             m_profiler->SetRenderTargets(m_renderTargets);
-
-            m_gBufferPass->CreateBindingSet(m_scene->GetTopLevelAS(), m_scene->GetPrevTopLevelAS(), *m_renderTargets);
 
             m_postprocessGBufferPass->CreateBindingSet(*m_renderTargets);
 
@@ -814,7 +810,6 @@ public:
         UpdateReGIRContextFromUI();
         UpdateReSTIRGIContextFromUI();
 
-        m_gBufferPass->NextFrame();
         m_postprocessGBufferPass->NextFrame();
         m_lightingPasses->NextFrame();
         m_compositingPass->NextFrame();
@@ -930,10 +925,7 @@ public:
             float upscalingLodBias = ::log2f(m_view.GetViewport().width() / m_upscaledView.GetViewport().width());
             gbufferSettings.textureLodBias += upscalingLodBias;
 
-            if (m_ui.rasterizeGBuffer)
-                m_rasterizedGBufferPass->Render(m_commandList, m_view, m_viewPrevious, *m_renderTargets, m_ui.gbufferSettings);
-            else
-                m_gBufferPass->Render(m_commandList, m_view, m_viewPrevious, m_ui.gbufferSettings);
+            m_rasterizedGBufferPass->Render(m_commandList, m_view, m_viewPrevious, *m_renderTargets, m_ui.gbufferSettings);
 
             m_postprocessGBufferPass->Render(m_commandList, m_view);
         }
@@ -1211,7 +1203,6 @@ private:
     engine::BindingCache m_bindingCache;
 
     std::unique_ptr<rtxdi::ImportanceSamplingContext> m_isContext;
-    std::unique_ptr<RaytracedGBufferPass> m_gBufferPass;
     std::unique_ptr<RasterizedGBufferPass> m_rasterizedGBufferPass;
     std::unique_ptr<PostprocessGBufferPass> m_postprocessGBufferPass;
     std::unique_ptr<GlassPass> m_glassPass;

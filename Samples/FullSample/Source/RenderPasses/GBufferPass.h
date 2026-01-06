@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "RayTracingPass.h"
-
 #include <donut/core/math/math.h>
 #include <nvrhi/nvrhi.h>
 #include <memory>
@@ -43,49 +41,6 @@ struct GBufferSettings
 
     bool enableMaterialReadback = false;
     dm::int2 materialReadbackPosition = 0;
-};
-
-class RaytracedGBufferPass
-{
-public:
-    RaytracedGBufferPass(
-        nvrhi::IDevice* device,
-        std::shared_ptr<donut::engine::ShaderFactory> shaderFactory,
-        std::shared_ptr<donut::engine::CommonRenderPasses> commonPasses,
-        std::shared_ptr<donut::engine::Scene> scene,
-        std::shared_ptr<Profiler> profiler,
-        nvrhi::IBindingLayout* bindlessLayout);
-    
-    void CreatePipeline(bool useRayQuery);
-
-    void CreateBindingSet(
-        nvrhi::rt::IAccelStruct* topLevelAS,
-        nvrhi::rt::IAccelStruct* prevTopLevelAS,
-        const RenderTargets& renderTargets);
-
-    void Render(
-        nvrhi::ICommandList* commandList,
-        const donut::engine::IView& view,
-        const donut::engine::IView& viewPrev,
-        const GBufferSettings& settings);
-
-    void NextFrame();
-
-private:
-    nvrhi::DeviceHandle m_device;
-
-    RayTracingPass m_pass;
-    nvrhi::BindingLayoutHandle m_bindingLayout;
-    nvrhi::BindingLayoutHandle m_bindlessLayout;
-    nvrhi::BindingSetHandle m_bindingSet;
-    nvrhi::BindingSetHandle m_prevBindingSet;
-
-    nvrhi::BufferHandle m_constantBuffer;
-
-    std::shared_ptr<donut::engine::ShaderFactory> m_shaderFactory;
-    std::shared_ptr<donut::engine::CommonRenderPasses> m_commonPasses;
-    std::shared_ptr<donut::engine::Scene> m_scene;
-    std::shared_ptr<Profiler> m_profiler;
 };
 
 class RasterizedGBufferPass

@@ -277,8 +277,6 @@ void UserInterface::GeneralRenderingSettings()
             m_ui.useRayQuery = false;
         }
 
-        ImGui::Checkbox("Rasterize G-Buffer", (bool*)&m_ui.rasterizeGBuffer);
-
         int resolutionScalePercents = int(m_ui.resolutionScale * 100.f);
         ImGui::SliderInt("Resolution Scale (%)", &resolutionScalePercents, 50, 100);
         m_ui.resolutionScale = float(resolutionScalePercents) * 0.01f;

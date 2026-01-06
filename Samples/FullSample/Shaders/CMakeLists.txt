@@ -43,7 +43,6 @@ set(shaders
    PrepareLights.hlsl
    PreprocessEnvironmentMap.hlsl
    RasterizedGBuffer.hlsl
-   RaytracedGBuffer.hlsl
    RenderEnvironmentMap.hlsl
    SceneGeometry.hlsli
    ShaderParameters.h)

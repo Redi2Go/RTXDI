@@ -112,7 +112,6 @@ struct UIData
     uint32_t framesToAccumulate = 0;
     ibool enableToneMapping = true;
     ibool enablePixelJitter = true;
-    ibool rasterizeGBuffer = true;
     ibool useRayQuery = true;
     float exposureBias = -1.0f;
     float verticalFov = 60.f;
