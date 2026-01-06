@@ -1,6 +1,3 @@
-
-include("${DONUT_PATH}/compileshaders.cmake")
-
 set(shaders
    LightingPasses/DI/FusedResampling.hlsl
    LightingPasses/DI/GenerateInitialSamples.hlsl
@@ -59,8 +56,6 @@ add_custom_target(${shaders_target}
     DEPENDS ShaderMake
     SOURCES ${shaders} Shaders.cfg)
 
-set(NRD_OPTIONS --relaxedInclude NRD.hlsli)
-
 set (OUTPUT_PATH_BASE "${CMAKE_BINARY_DIR}/bin/shaders/full-sample")
 
  if (WIN32)
@@ -69,28 +64,7 @@ set (OUTPUT_PATH_BASE "${CMAKE_BINARY_DIR}/bin/shaders/full-sample")
      set (USE_API_OPTION "")
  endif()
 
-if (DONUT_WITH_DX12)
-   set(DX12_COMPILER_OPTIONS 
-      --platform DXIL
-      --shaderModel 6_5
-      --binaryBlob
-      --outputExt .bin
-      -I ${DONUT_SHADER_INCLUDE_DIR}
-      -I ${RTXDI_RUNTIME_INCLUDE_PATH}
-      --relaxedInclude "../Types.h"
-      ${NRD_OPTIONS}
-      ${USE_API_OPTION}
-      --compiler ${DXC_PATH})
-
-   add_custom_command(TARGET ${shaders_target} PRE_BUILD
-                     COMMAND ShaderMake
-                              --config ${CMAKE_CURRENT_SOURCE_DIR}/Shaders.cfg
-                              --out ${OUTPUT_PATH_BASE}/dxil
-                              ${DX12_COMPILER_OPTIONS})
-endif()
-
-if (DONUT_WITH_VULKAN)
-   set(VULKAN_COMPILER_OPTIONS
+set(VULKAN_COMPILER_OPTIONS
       --platform SPIRV
       --shaderModel 6_5
       --vulkanVersion 1.2
@@ -110,7 +84,6 @@ if (DONUT_WITH_VULKAN)
                               --config ${CMAKE_CURRENT_SOURCE_DIR}/Shaders.cfg
                               --out ${OUTPUT_PATH_BASE}/spirv
                               ${VULKAN_COMPILER_OPTIONS})
-endif()
 
 set_target_properties(${shaders_target} PROPERTIES FOLDER ${folder})
 set_source_files_properties(${shaders} PROPERTIES VS_TOOL_OVERRIDE "None") 

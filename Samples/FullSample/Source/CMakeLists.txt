@@ -36,18 +36,10 @@ foreach(source IN LISTS sources)
     source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
 
-
 include(CMakeDependentOption)
 
-cmake_dependent_option(RTXDI_CONSOLE_APP "Build the sample as a console application" OFF WIN32 OFF)
+add_executable(${project} WIN32 ${sources})
 
-if (RTXDI_CONSOLE_APP)
-	add_executable(${project} ${sources})
-	target_compile_definitions(${project} PRIVATE IS_CONSOLE_APP=1)
-else()
-	add_executable(${project} WIN32 ${sources})
-endif()
-
-target_link_libraries(${project} donut_core donut_engine donut_app donut_render Rtxdi cxxopts)
+target_link_libraries(${project} Rtxdi)
 add_dependencies(${project} FullSampleShaders)
 set_target_properties(${project} PROPERTIES FOLDER ${folder})
