@@ -123,7 +123,7 @@ public:
             m_bindlessLayout = GetDevice()->createBindlessLayout(bindlessLayoutDesc);
         }
 
-        std::filesystem::path scenePath = "/Assets/Media/bistro-rtxdi.scene.json";
+        std::filesystem::path scenePath = "/Assets/Media/PlatformGltf/Platform.gltf";
 
         m_descriptorTableManager = std::make_shared<engine::DescriptorTableManager>(GetDevice(), m_bindlessLayout);
 
@@ -206,10 +206,19 @@ public:
 
         m_scene->FinishedLoading(GetFrameIndex());
 
-        m_camera.LookAt(float3(-7.688f, 2.0f, 5.594f), float3(-7.3341f, 2.0f, 6.5366f));
+        // m_camera.LookAt({ 1.71, 3.59, -3.16 }, float3{ 1.71, 3.59, -2.16 });
+        m_camera.LookAt({ 1.71, 3.59, -3.16 }, float3{ 1.71, 3.59, -3.16 } + float3{ 0.0f, -0.342f, 0.9397f });
+        // m_camera.LookAt({ 1.71, 3.59, -3.16 }, { 0.53, 1.53, 1.47 });
         m_camera.SetMoveSpeed(3.f);
 
         const auto& sceneGraph = m_scene->GetSceneGraph();
+    
+        auto pointLight = std::make_shared<engine::PointLight>();
+        pointLight->color = { 1.0f, 0.0f, 0.0f };
+        pointLight->radius = 0.5;
+        
+        auto pointLightNode = sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), pointLight);
+        pointLightNode->SetTranslation({ 0.53, 1.53, 1.47 });
 
         for (const auto& pLight : sceneGraph->GetLights())
         {
@@ -222,9 +231,10 @@ public:
 
         if (!m_sunLight)
         {
+            // TODO: Redi Lukas Sun Light Directional
             m_sunLight = std::make_shared<engine::DirectionalLight>();
-            sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), m_sunLight);
-            m_sunLight->SetDirection(dm::double3(0.15, -1.0, 0.3));
+            // sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), m_sunLight);
+            // m_sunLight->SetDirection(dm::double3(0.15, -1.0, 0.3));
             m_sunLight->angularSize = 1.f;
         }
 
@@ -235,8 +245,9 @@ public:
 
         // Create an environment light
         m_environmentLight = std::make_shared<EnvironmentLight>();
-        sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), m_environmentLight);
-        m_environmentLight->SetName("Environment");
+        // TODO: Redi Lukas Env Map 
+        // sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), m_environmentLight);
+        // m_environmentLight->SetName("Environment");
         m_ui.environmentMapDirty = 2;
         m_ui.environmentMapIndex = 0;
         
@@ -1123,8 +1134,8 @@ int main(int argc, char** argv)
     app::DeviceCreationParameters deviceParams;
     deviceParams.swapChainBufferCount = 3;
     deviceParams.enableRayTracingExtensions = true;
-    deviceParams.backBufferWidth = 1920;
-    deviceParams.backBufferHeight = 1080;
+    deviceParams.backBufferWidth = 1280;
+    deviceParams.backBufferHeight = 720;
     deviceParams.vsyncEnabled = true;
     deviceParams.infoLogSeverity = log::Severity::Debug;
 

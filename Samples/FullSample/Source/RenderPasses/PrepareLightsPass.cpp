@@ -406,6 +406,18 @@ RTXDI_LightBufferParameters PrepareLightsPass::Process(
     outLightBufferParams.localLightBufferRegion.numLights = lightBufferOffset;
 
     auto sortedLights = sceneLights;
+    /*sortedLights.resize(1);
+    
+    auto* sceneGraphNode = sortedLights[0]->GetNode();
+    sceneGraphNode->SetTranslation({ 0.53, 1.53, 1.47 });
+    
+    auto pointLight = std::make_shared<PointLight>();
+    pointLight->color = { 1.0f, 0.0f, 0.0f };
+    pointLight->radius = 0.5;
+    
+    sceneGraphNode->SetLeaf(pointLight);
+    sortedLights[0] = pointLight;*/
+    
     std::sort(sortedLights.begin(), sortedLights.end(), [](const auto& a, const auto& b) 
         { return isInfiniteLight(*a) < isInfiniteLight(*b); });
 

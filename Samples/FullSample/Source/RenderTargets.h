@@ -21,7 +21,7 @@ namespace donut::engine
 
 class RenderTargets
 {
-public:
+public:    
     nvrhi::TextureHandle DeviceDepth;
     nvrhi::TextureHandle Depth;
     nvrhi::TextureHandle PrevDepth;
