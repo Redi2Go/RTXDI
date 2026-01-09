@@ -11,8 +11,10 @@
 #include "RenderTargets.h"
 
 #include <donut/engine/FramebufferFactory.h>
+#include <GL/glew.h>
 
 #include "../../../External/donut/nvrhi/src/vulkan/vulkan-backend.h"
+#include "GLFW/glfw3.h"
 
 using namespace dm;
 using namespace donut;
@@ -60,6 +62,35 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.debugName = "PrevDepthBuffer";
     PrevDepth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     
+    glfwInit();
+
+    // 🔴 REQUIRED — tell GLFW to create an OpenGL context
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+
+    // Core profile required for EXT_memory_object
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // (optional but recommended)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+
+    GLFWwindow* window =
+        glfwCreateWindow(800, 600, "GL interop", nullptr, nullptr);
+
+    if (!window) {
+        fprintf(stderr, "Failed to create GLFW window\n");
+        abort();
+    }
+
+    // 🔴 REQUIRED
+    glfwMakeContextCurrent(window);
+    
+    glewInit();
+    
+    fprintf(stderr, "GL version: %s\n", glGetString(GL_VERSION));
+    fprintf(stderr, "GL profile: %s\n", glGetString(GL_CONTEXT_PROFILE_MASK));
+    
     int depth = static_cast<nvrhi::vulkan::Device*>(device)->importTextureToOpenGL(Depth);
 
     desc.useClearValue = false;
@@ -67,27 +98,27 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
 
     desc.format = nvrhi::Format::R32_UINT;
     desc.debugName = "GBufferDiffuseAlbedo";
-    GBufferDiffuseAlbedo = device->createTexture(desc);
+    GBufferDiffuseAlbedo = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevGBufferDiffuseAlbedo";
-    PrevGBufferDiffuseAlbedo = device->createTexture(desc);
+    PrevGBufferDiffuseAlbedo = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
     desc.format = nvrhi::Format::R32_UINT;
     desc.debugName = "GBufferSpecularRough";
-    GBufferSpecularRough = device->createTexture(desc);
+    GBufferSpecularRough = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevGBufferSpecularRough";
-    PrevGBufferSpecularRough = device->createTexture(desc);
+    PrevGBufferSpecularRough = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
     desc.format = nvrhi::Format::R32_UINT;
     desc.debugName = "GBufferNormals";
-    GBufferNormals = device->createTexture(desc);
+    GBufferNormals = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevGBufferNormals";
-    PrevGBufferNormals = device->createTexture(desc);
+    PrevGBufferNormals = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     
     desc.format = nvrhi::Format::R32_UINT;
     desc.debugName = "GBufferGeoNormals";
-    GBufferGeoNormals = device->createTexture(desc);
+    GBufferGeoNormals = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevGBufferGeoNormals";
-    PrevGBufferGeoNormals = device->createTexture(desc);
+    PrevGBufferGeoNormals = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
     desc.format = nvrhi::Format::RGBA8_UNORM;
     desc.sharedResourceFlags = nvrhi::SharedResourceFlags::None;
@@ -97,14 +128,14 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.format = nvrhi::Format::RGBA16_FLOAT;
     desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.debugName = "GBufferEmissive";
-    GBufferEmissive = device->createTexture(desc);
+    GBufferEmissive = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
+
+    desc.format = nvrhi::Format::RGBA16_FLOAT;
+    desc.debugName = "MotionVectors";
+    MotionVectors = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
     desc.format = nvrhi::Format::RGBA16_FLOAT;
     desc.sharedResourceFlags = nvrhi::SharedResourceFlags::None;
-    desc.debugName = "MotionVectors";
-    MotionVectors = device->createTexture(desc);
-
-    desc.format = nvrhi::Format::RGBA16_FLOAT;
     desc.debugName = "ResolvedColor";
     ResolvedColor = device->createTexture(desc);
 
