@@ -48,6 +48,6 @@ else()
 	add_executable(${project} WIN32 ${sources})
 endif()
 
-target_link_libraries(${project} donut_core donut_engine donut_app donut_render Rtxdi cxxopts)
+target_link_libraries(${project} glfw donut_core donut_engine donut_app donut_render Rtxdi cxxopts)
 add_dependencies(${project} FullSampleShaders)
 set_target_properties(${project} PROPERTIES FOLDER ${folder})

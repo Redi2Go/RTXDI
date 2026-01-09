@@ -12,6 +12,8 @@
 
 #include <donut/engine/FramebufferFactory.h>
 
+#include "../../../External/donut/nvrhi/src/vulkan/vulkan-backend.h"
+
 using namespace dm;
 using namespace donut;
 
@@ -51,11 +53,14 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 
     desc.format = nvrhi::Format::R32_FLOAT;
+    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.clearValue = BACKGROUND_DEPTH;
     desc.debugName = "DepthBuffer";
-    Depth = device->createTexture(desc);
+    Depth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevDepthBuffer";
-    PrevDepth = device->createTexture(desc);
+    PrevDepth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
+    
+    int depth = static_cast<nvrhi::vulkan::Device*>(device)->importTextureToOpenGL(Depth);
 
     desc.useClearValue = false;
     desc.clearValue = 0.f;
@@ -85,14 +90,17 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     PrevGBufferGeoNormals = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA8_UNORM;
+    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::None;
     desc.debugName = "NormalRoughness";
     NormalRoughness = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA16_FLOAT;
+    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.debugName = "GBufferEmissive";
     GBufferEmissive = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA16_FLOAT;
+    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::None;
     desc.debugName = "MotionVectors";
     MotionVectors = device->createTexture(desc);
 
