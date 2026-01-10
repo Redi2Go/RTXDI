@@ -43,55 +43,26 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     LdrFramebuffer->RenderTargets = { LdrColor };
     
     desc.format = nvrhi::Format::D32;
+    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.debugName = "DeviceDepth";
     desc.initialState = nvrhi::ResourceStates::DepthWrite;
     desc.clearValue = 0.f;
     desc.useClearValue = true;
-    DeviceDepth = device->createTexture(desc);
+    DeviceDepth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
-    // G-buffer targets
+    // G-buffer targets    
+    fprintf(stderr, "GL version: %s\n", glGetString(GL_VERSION));
+    fprintf(stderr, "GL profile: %s\n", glGetString(GL_CONTEXT_PROFILE_MASK));
 
     desc.isUAV = true;
     desc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 
     desc.format = nvrhi::Format::R32_FLOAT;
-    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.clearValue = BACKGROUND_DEPTH;
     desc.debugName = "DepthBuffer";
     Depth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
     desc.debugName = "PrevDepthBuffer";
     PrevDepth = static_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
-    
-    glfwInit();
-
-    // 🔴 REQUIRED — tell GLFW to create an OpenGL context
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-
-    // Core profile required for EXT_memory_object
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // (optional but recommended)
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-
-    GLFWwindow* window =
-        glfwCreateWindow(800, 600, "GL interop", nullptr, nullptr);
-
-    if (!window) {
-        fprintf(stderr, "Failed to create GLFW window\n");
-        abort();
-    }
-
-    // 🔴 REQUIRED
-    glfwMakeContextCurrent(window);
-    
-    glewInit();
-    
-    fprintf(stderr, "GL version: %s\n", glGetString(GL_VERSION));
-    fprintf(stderr, "GL profile: %s\n", glGetString(GL_CONTEXT_PROFILE_MASK));
-    
-    int depth = static_cast<nvrhi::vulkan::Device*>(device)->importTextureToOpenGL(Depth);
 
     desc.useClearValue = false;
     desc.clearValue = 0.f;

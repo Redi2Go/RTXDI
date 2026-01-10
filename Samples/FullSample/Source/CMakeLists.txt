@@ -48,6 +48,11 @@ else()
 	add_executable(${project} WIN32 ${sources})
 endif()
 
+find_package(JNI)
+include_directories(${JNI_INCLUDE_DIRS})
+message(${JNI_INCLUDE_DIRS})
+target_link_libraries(${project} ${JNI_LIBRARIES})
+
 target_link_libraries(${project} glfw donut_core donut_engine donut_app donut_render Rtxdi cxxopts)
 add_dependencies(${project} FullSampleShaders)
 set_target_properties(${project} PROPERTIES FOLDER ${folder})

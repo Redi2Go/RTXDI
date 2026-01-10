@@ -45,6 +45,11 @@
 #include "SampleScene.h"
 #include "UserInterface.h"
 
+#include <jni.h>
+#include <GL/glew.h>
+
+#include "../../../External/donut/nvrhi/src/vulkan/vulkan-backend.h"
+
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -64,6 +69,8 @@ static int g_ExitCode = 0;
 class SceneRenderer : public app::ApplicationBase
 {
 public:
+    inline static std::function<void()> renderGBuffer;
+    
     SceneRenderer(app::DeviceManager* deviceManager, UIData& ui)
         : ApplicationBase(deviceManager)
         , m_bindingCache(deviceManager->GetDevice())
@@ -84,6 +91,56 @@ public:
 
     bool Init()
     {
+        JavaVMInitArgs vm_args;
+        int index = 0;
+        JavaVMOption* options = new JavaVMOption[30];
+        char arg1[] = "-Djava.library.path=C:/Users/Lukas/Documents/05_RandomProjects/RayTracing/Industrial/lib";
+        char arg3[] = "-Djava.class.path=C:/Users/Lukas/Documents/05_RandomProjects/RayTracing/Industrial/target/classes;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl/3.3.6/lwjgl-3.3.6.jar;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl-glfw/3.3.6/lwjgl-glfw-3.3.6.jar;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-3.3.6.jar;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl/3.3.6/lwjgl-3.3.6-natives-windows.jar;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl-glfw/3.3.6/lwjgl-glfw-3.3.6-natives-windows.jar;C:/Users/Lukas/.m2/repository/org/lwjgl/lwjgl-opengl/3.3.6/lwjgl-opengl-3.3.6-natives-windows.jar;C:/Users/Lukas/.m2/repository/org/joml/joml/1.10.8/joml-1.10.8.jar;C:/Users/Lukas/.m2/repository/io/github/spair/imgui-java-lwjgl3/1.89.0/imgui-java-lwjgl3-1.89.0.jar;C:/Users/Lukas/.m2/repository/io/github/spair/imgui-java-binding/1.89.0/imgui-java-binding-1.89.0.jar;C:/Users/Lukas/.m2/repository/io/github/spair/imgui-java-natives-windows/1.89.0/imgui-java-natives-windows-1.89.0.jar";
+        char arg4[] = "-Xlog:class+load=info";
+        options[index++].optionString = arg1; 
+        options[index++].optionString = arg3;
+        // options[index++].optionString = arg4;
+        
+        vm_args.version = JNI_VERSION_21;
+        vm_args.nOptions = index;
+        vm_args.options = options;
+        vm_args.ignoreUnrecognized = false;
+        /* load and initialize a Java VM, return a JNI interface
+         * pointer in env */
+
+        JNI_CreateJavaVM(&vm, (void**)&env, &vm_args);
+
+        jclass cls = env->FindClass("at/redi2go/industrial/client/LWJGLWindow");
+        if (!cls) {
+            env->ExceptionDescribe();  // 🔴 REQUIRED
+            env->ExceptionClear();
+        }
+        
+        jmethodID ctor = env->GetMethodID(cls, "<init>", "()V");
+        jobject lwjglWindow = env->NewObject(cls, ctor);
+        env->ExceptionDescribe();  // 🔴 REQUIRED
+        env->ExceptionClear();
+        
+        glewInit();
+        
+        SceneRenderer::renderGBuffer = [this, cls, lwjglWindow]
+        {
+            // renderGBuffer(int viewDepth, int albedo, int specularRough, int normal, int geoNormal, int emissive, int motion, int depth)
+            jmethodID renderGBufferId = env->GetMethodID(cls, "renderGBuffer", "(IIIIIIII)V");
+            env->CallVoidMethod(lwjglWindow, renderGBufferId,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->Depth.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->GBufferDiffuseAlbedo.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->GBufferSpecularRough.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->GBufferNormals.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->GBufferGeoNormals.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->GBufferEmissive.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->MotionVectors.Get())->openglTexture,
+                dynamic_cast<nvrhi::vulkan::Texture*>(m_renderTargets->DeviceDepth.Get())->openglTexture
+            );
+            env->ExceptionDescribe();  // 🔴 REQUIRED
+            env->ExceptionClear();
+        };
+        
         std::filesystem::path mediaPath = app::GetDirectoryWithExecutable().parent_path() / "Assets/Media";
         if (!std::filesystem::exists(mediaPath))
         {
@@ -856,10 +913,12 @@ public:
             GBufferSettings gbufferSettings = m_ui.gbufferSettings;
             float upscalingLodBias = ::log2f(m_view.GetViewport().width() / m_upscaledView.GetViewport().width());
             gbufferSettings.textureLodBias += upscalingLodBias;
+            
+            renderGBuffer();
 
-            m_rasterizedGBufferPass->Render(m_commandList, m_view, m_viewPrevious, *m_renderTargets, m_ui.gbufferSettings);
+            /*m_rasterizedGBufferPass->Render(m_commandList, m_view, m_viewPrevious, *m_renderTargets, m_ui.gbufferSettings);
 
-            m_postprocessGBufferPass->Render(m_commandList, m_view);
+            m_postprocessGBufferPass->Render(m_commandList, m_view);*/            
         }
 
         // The light indexing members of frameParameters are written by PrepareLightsPass below
@@ -1072,6 +1131,9 @@ public:
     }
 
 private:
+    JavaVM *vm = nullptr;
+    JNIEnv *env = nullptr;       /* pointer to native method interface */
+    
     nvrhi::CommandListHandle m_commandList;
 
     nvrhi::BindingLayoutHandle m_bindlessLayout;
