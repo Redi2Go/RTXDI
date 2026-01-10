@@ -35,7 +35,6 @@ public:
     nvrhi::TextureHandle PrevGBufferNormals;
     nvrhi::TextureHandle PrevGBufferGeoNormals;
     nvrhi::TextureHandle MotionVectors;
-    nvrhi::TextureHandle NormalRoughness; // for NRD
 
     nvrhi::TextureHandle HdrColor;
     nvrhi::TextureHandle LdrColor;

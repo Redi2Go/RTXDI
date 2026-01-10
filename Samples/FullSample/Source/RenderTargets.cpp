@@ -91,13 +91,7 @@ RenderTargets::RenderTargets(nvrhi::IDevice* device, int2 size)
     desc.debugName = "PrevGBufferGeoNormals";
     PrevGBufferGeoNormals = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 
-    desc.format = nvrhi::Format::RGBA8_UNORM;
-    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::None;
-    desc.debugName = "NormalRoughness";
-    NormalRoughness = device->createTexture(desc);
-
     desc.format = nvrhi::Format::RGBA16_FLOAT;
-    desc.sharedResourceFlags = nvrhi::SharedResourceFlags::Shared;
     desc.debugName = "GBufferEmissive";
     GBufferEmissive = dynamic_cast<nvrhi::vulkan::Device*>(device)->createTextureForOpenGL(desc);
 

@@ -16,7 +16,6 @@
 #include <donut/shaders/utils.hlsli>
 
 RWTexture2D<uint> u_SpecularRough : register(u0);
-RWTexture2D<float4> u_NormalRoughness : register(u1);
 Texture2D<uint> t_Normals : register(t0);
 Texture2D<float> t_ViewDepth : register(t1);
 
@@ -81,5 +80,4 @@ void main(uint2 pixelPosition : SV_DispatchThreadID)
         currentRoughnessModified = GetModifiedRoughnessFromNormalVariance(currentRoughness, averageNormal);
 
     u_SpecularRough[pixelPosition] = Pack_R8G8B8A8_Gamma_UFLOAT(float4(specularRough.rgb, currentRoughnessModified));
-    u_NormalRoughness[pixelPosition] = float4(currentNormal * 0.5 + 0.5, currentRoughness);
 }

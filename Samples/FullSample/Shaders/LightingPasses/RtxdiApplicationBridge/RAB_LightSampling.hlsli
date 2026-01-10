@@ -137,14 +137,16 @@ float3 GetEnvironmentRadiance(float3 direction)
 
 bool IsComplexSurface(int2 pixelPosition, RAB_Surface surface)
 {
+    return false;
+    
     // Use a simple classification of surfaces into simple and complex based on the roughness.
     // The PostprocessGBuffer pass modifies the surface roughness and writes the DenoiserNormalRoughness
     // channel where the roughness is preserved. The roughness stored in the regular G-buffer is modified
     // based on the surface curvature around the current pixel. If the surface is curved, roughness increases.
     // Detect that increase here and disable permutation sampling based on a threshold.
     // Other classification methods can be employed for better quality.
-    float originalRoughness = t_DenoiserNormalRoughness[pixelPosition].a;
-    return originalRoughness < (surface.material.roughness * g_Const.restirDI.temporalResamplingParams.permutationSamplingThreshold);
+    // float originalRoughness = t_DenoiserNormalRoughness[pixelPosition].a;
+    // return originalRoughness < (surface.material.roughness * g_Const.restirDI.temporalResamplingParams.permutationSamplingThreshold);
 }
 
 uint getLightIndex(uint instanceID, uint geometryIndex, uint primitiveIndex)

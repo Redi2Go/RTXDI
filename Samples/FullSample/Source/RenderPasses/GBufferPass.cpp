@@ -197,7 +197,6 @@ PostprocessGBufferPass::PostprocessGBufferPass(nvrhi::IDevice* device, std::shar
     globalBindingLayoutDesc.visibility = nvrhi::ShaderType::Compute;
     globalBindingLayoutDesc.bindings = {
         nvrhi::BindingLayoutItem::Texture_UAV(0),
-        nvrhi::BindingLayoutItem::Texture_UAV(1),
 
         nvrhi::BindingLayoutItem::Texture_SRV(0),
         nvrhi::BindingLayoutItem::Texture_SRV(1)
@@ -224,7 +223,6 @@ void PostprocessGBufferPass::CreateBindingSet(const RenderTargets& renderTargets
         nvrhi::BindingSetDesc bindingSetDesc;
         bindingSetDesc.bindings = {
             nvrhi::BindingSetItem::Texture_UAV(0, currentFrame ? renderTargets.GBufferSpecularRough : renderTargets.PrevGBufferSpecularRough),
-            nvrhi::BindingSetItem::Texture_UAV(1, renderTargets.NormalRoughness),
 
             nvrhi::BindingSetItem::Texture_SRV(0, currentFrame ? renderTargets.GBufferNormals : renderTargets.PrevGBufferNormals),
             nvrhi::BindingSetItem::Texture_SRV(1, currentFrame ? renderTargets.Depth : renderTargets.PrevDepth)

@@ -14,7 +14,6 @@ Texture2D<uint> t_PrevGBufferDiffuseAlbedo : register(t8);
 Texture2D<uint> t_PrevGBufferSpecularRough : register(t9);
 Texture2D<float2> t_PrevRestirLuminance : register(t10);
 Texture2D<float4> t_MotionVectors : register(t11);
-Texture2D<float4> t_DenoiserNormalRoughness : register(t12);
 
 // Scene resources
 RaytracingAccelerationStructure SceneBVH : register(t30);

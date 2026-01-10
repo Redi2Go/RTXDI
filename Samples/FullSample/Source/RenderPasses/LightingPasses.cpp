@@ -103,7 +103,6 @@ LightingPasses::LightingPasses(
         nvrhi::BindingLayoutItem::Texture_SRV(9),
         nvrhi::BindingLayoutItem::Texture_SRV(10),
         nvrhi::BindingLayoutItem::Texture_SRV(11),
-        nvrhi::BindingLayoutItem::Texture_SRV(12),
 
         nvrhi::BindingLayoutItem::RayTracingAccelStruct(30),
         nvrhi::BindingLayoutItem::RayTracingAccelStruct(31),
@@ -169,7 +168,6 @@ void LightingPasses::CreateBindingSet(
             nvrhi::BindingSetItem::Texture_SRV(9, currentFrame ? renderTargets.PrevGBufferSpecularRough : renderTargets.GBufferSpecularRough),
             nvrhi::BindingSetItem::Texture_SRV(10, currentFrame ? renderTargets.PrevRestirLuminance : renderTargets.RestirLuminance),
             nvrhi::BindingSetItem::Texture_SRV(11, renderTargets.MotionVectors),
-            nvrhi::BindingSetItem::Texture_SRV(12, renderTargets.NormalRoughness),
             
             nvrhi::BindingSetItem::RayTracingAccelStruct(30, currentFrame ? topLevelAS : prevTopLevelAS),
             nvrhi::BindingSetItem::RayTracingAccelStruct(31, currentFrame ? prevTopLevelAS : topLevelAS),
