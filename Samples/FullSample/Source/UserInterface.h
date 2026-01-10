@@ -20,7 +20,6 @@
 #include <donut/engine/Scene.h>
 #include <donut/render/TemporalAntiAliasingPass.h>
 #include <donut/app/imgui_renderer.h>
-#include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/LightingPasses.h"
 
 #include <optional>
@@ -149,7 +148,6 @@ struct UIData
     bool referenceImageCaptured = false;
     float referenceImageSplit = 0.f;
 
-    GBufferSettings gbufferSettings;
     LightingPasses::RenderSettings lightingSettings;
 
     struct

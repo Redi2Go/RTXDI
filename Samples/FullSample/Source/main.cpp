@@ -34,7 +34,6 @@
 #endif
 
 #include "RenderPasses/CompositingPass.h"
-#include "RenderPasses/GBufferPass.h"
 #include "RenderPasses/GenerateMipsPass.h"
 #include "RenderPasses/LightingPasses.h"
 #include "RenderPasses/PrepareLightsPass.h"
@@ -204,8 +203,6 @@ public:
         m_ui.resources->profiler = m_profiler;
 
         m_compositingPass = std::make_unique<CompositingPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
-        m_rasterizedGBufferPass = std::make_unique<RasterizedGBufferPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
-        m_postprocessGBufferPass = std::make_unique<PostprocessGBufferPass>(GetDevice(), m_shaderFactory);
         m_prepareLightsPass = std::make_unique<PrepareLightsPass>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_bindlessLayout);
         m_lightingPasses = std::make_unique<LightingPasses>(GetDevice(), m_shaderFactory, m_CommonPasses, m_scene, m_profiler, m_bindlessLayout);
 
@@ -308,8 +305,6 @@ public:
         m_ui.environmentMapDirty = 2;
         m_ui.environmentMapIndex = 0;
         
-        m_rasterizedGBufferPass->CreateBindingSet();
-
         m_scene->BuildMeshBLASes(GetDevice());
 
         GetDeviceManager()->SetVsyncEnabled(false);
@@ -320,7 +315,6 @@ public:
     void LoadShaders()
     {
         m_compositingPass->CreatePipeline();
-        m_postprocessGBufferPass->CreatePipeline();
         m_prepareLightsPass->CreatePipeline();
     }
 
@@ -398,8 +392,6 @@ public:
             mousex *= m_view.GetViewport().width() / m_upscaledView.GetViewport().width();
             mousey *= m_view.GetViewport().height() / m_upscaledView.GetViewport().height();
 
-            m_ui.gbufferSettings.materialReadbackPosition = int2(int(mousex), int(mousey));
-            m_ui.gbufferSettings.enableMaterialReadback = true;
             return true;
         }
 
@@ -564,10 +556,6 @@ public:
             m_renderTargets = std::make_shared<RenderTargets>(GetDevice(), int2((int)renderWidth, (int)renderHeight));
 
             m_profiler->SetRenderTargets(m_renderTargets);
-
-            m_postprocessGBufferPass->CreateBindingSet(*m_renderTargets);
-
-            m_rasterizedGBufferPass->CreatePipeline(*m_renderTargets);
 
             m_compositingPass->CreateBindingSet(*m_renderTargets);
 
@@ -820,7 +808,6 @@ public:
         UpdateReSTIRDIContextFromUI();
         UpdateReSTIRGIContextFromUI();
 
-        m_postprocessGBufferPass->NextFrame();
         m_lightingPasses->NextFrame();
         m_compositingPass->NextFrame();
         m_renderTargets->NextFrame();
@@ -910,15 +897,7 @@ public:
         {
             ProfilerScope scope(*m_profiler, m_commandList, ProfilerSection::GBufferFill);
 
-            GBufferSettings gbufferSettings = m_ui.gbufferSettings;
-            float upscalingLodBias = ::log2f(m_view.GetViewport().width() / m_upscaledView.GetViewport().width());
-            gbufferSettings.textureLodBias += upscalingLodBias;
-            
             renderGBuffer();
-
-            /*m_rasterizedGBufferPass->Render(m_commandList, m_view, m_viewPrevious, *m_renderTargets, m_ui.gbufferSettings);
-
-            m_postprocessGBufferPass->Render(m_commandList, m_view);*/            
         }
 
         // The light indexing members of frameParameters are written by PrepareLightsPass below
@@ -951,7 +930,6 @@ public:
         
         LightingPasses::RenderSettings lightingSettings = m_ui.lightingSettings;
         lightingSettings.enablePreviousTLAS &= m_ui.enableAnimations;
-        lightingSettings.enableAlphaTestedGeometry = m_ui.gbufferSettings.enableAlphaTestedGeometry;
         lightingSettings.denoiserMode = DENOISER_MODE_OFF;
         if (lightingSettings.denoiserMode == DENOISER_MODE_OFF)
             lightingSettings.enableGradients = false;
@@ -1117,8 +1095,6 @@ public:
         m_commandList->close();
         GetDevice()->executeCommandList(m_commandList);
         
-        m_ui.gbufferSettings.enableMaterialReadback = false;
-        
         if (m_ui.enableAnimations)
             m_framesSinceAnimation = 0;
         else
@@ -1154,8 +1130,6 @@ private:
     engine::BindingCache m_bindingCache;
 
     std::unique_ptr<rtxdi::ImportanceSamplingContext> m_isContext;
-    std::unique_ptr<RasterizedGBufferPass> m_rasterizedGBufferPass;
-    std::unique_ptr<PostprocessGBufferPass> m_postprocessGBufferPass;
     std::unique_ptr<CompositingPass> m_compositingPass;
     std::unique_ptr<PrepareLightsPass> m_prepareLightsPass;
     std::unique_ptr<RenderEnvironmentMapPass> m_renderEnvironmentMapPass;

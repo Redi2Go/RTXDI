@@ -36,10 +36,8 @@ set(shaders
    Helperfunctions.hlsli
    LightShaping.hlsli
    PolymorphicLight.hlsli
-   PostprocessGBuffer.hlsl
    PrepareLights.hlsl
    PreprocessEnvironmentMap.hlsl
-   RasterizedGBuffer.hlsl
    RenderEnvironmentMap.hlsl
    SceneGeometry.hlsli
    ShaderParameters.h)

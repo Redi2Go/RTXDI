@@ -807,8 +807,6 @@ void UserInterface::SceneSettings()
         ImGui::SliderFloat("Animation Speed", &m_ui.animationSpeed, 0.f, 2.f);
         ImGui::PopItemWidth();
 
-        m_ui.resetAccumulation |= ImGui::Checkbox("Alpha-Tested Geometry", (bool*)&m_ui.gbufferSettings.enableAlphaTestedGeometry);
-
         const auto& environmentMaps = m_ui.resources->scene->GetEnvironmentMaps();
 
         const std::string selectedEnvironmentMap = getEnvironmentMapName(*m_ui.resources->scene, m_ui.environmentMapIndex);
@@ -860,21 +858,6 @@ void UserInterface::SceneSettings()
     
     if (ImGui_ColoredTreeNode("Material Editor", c_ColorRegularHeader))
     {
-        ImGui::Checkbox("##enableRoughnessOverride", &m_ui.gbufferSettings.enableRoughnessOverride);
-        ImGui::SameLine();
-        ImGui::PushItemWidth(89.f);
-        ImGui::SliderFloat("Roughness Override", &m_ui.gbufferSettings.roughnessOverride, 0.f, 1.f);
-        ImGui::PopItemWidth();
-
-        ImGui::Checkbox("##enableMetalnessOverride", &m_ui.gbufferSettings.enableMetalnessOverride);
-        ImGui::SameLine();
-        ImGui::PushItemWidth(89.f);
-        ImGui::SliderFloat("Metalness Override", &m_ui.gbufferSettings.metalnessOverride, 0.f, 1.f);
-        ImGui::PopItemWidth();
-
-        ImGui::SliderFloat("Normal Map Scale", &m_ui.gbufferSettings.normalMapScale, 0.f, 1.f);
-        ImGui::SliderFloat("Texture LOD Bias", &m_ui.gbufferSettings.textureLodBias, -2.f, 2.f);
-
         bool resetSelection = false;
         if (m_ui.resources->selectedMaterial)
         {

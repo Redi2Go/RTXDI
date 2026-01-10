@@ -13,7 +13,6 @@
 #include "../RtxdiResources.h"
 #include "../Profiler.h"
 #include "../SampleScene.h"
-#include "GBufferPass.h"
 
 #include <donut/engine/Scene.h>
 #include <donut/engine/CommonRenderPasses.h>
@@ -328,8 +327,8 @@ void FillBRDFPTConstants(BRDFPathTracing_Parameters& constants, const GBufferSet
 {
     constants = lightingSettings.brdfptParams;
     constants.materialOverrideParams.minSecondaryRoughness = lightingSettings.brdfptParams.materialOverrideParams.minSecondaryRoughness;
-    constants.materialOverrideParams.roughnessOverride = gbufferSettings.enableRoughnessOverride ? gbufferSettings.roughnessOverride : -1.f;
-    constants.materialOverrideParams.metalnessOverride = gbufferSettings.enableMetalnessOverride ? gbufferSettings.metalnessOverride : -1.f;
+    constants.materialOverrideParams.roughnessOverride = -1.f;
+    constants.materialOverrideParams.metalnessOverride = -1.f;
     constants.secondarySurfaceReSTIRDIParams.initialSamplingParams.environmentMapImportanceSampling = lightBufferParameters.environmentLightParams.lightPresent;
     if (!constants.secondarySurfaceReSTIRDIParams.initialSamplingParams.environmentMapImportanceSampling)
         constants.secondarySurfaceReSTIRDIParams.initialSamplingParams.numPrimaryEnvironmentSamples = 0;

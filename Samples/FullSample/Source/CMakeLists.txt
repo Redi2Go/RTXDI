@@ -4,8 +4,6 @@ set(folder "RTXDI SDK")
 set(sources
 	"RenderPasses/CompositingPass.cpp"
 	"RenderPasses/CompositingPass.h"
-	"RenderPasses/GBufferPass.cpp"
-	"RenderPasses/GBufferPass.h"
 	"RenderPasses/GenerateMipsPass.cpp"
 	"RenderPasses/GenerateMipsPass.h"
 	"RenderPasses/LightingPasses.cpp"
