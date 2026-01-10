@@ -264,7 +264,7 @@ public:
         m_scene->FinishedLoading(GetFrameIndex());
 
         // m_camera.LookAt({ 1.71, 3.59, -3.16 }, float3{ 1.71, 3.59, -2.16 });
-        m_camera.LookAt({ 1.71, 3.59, -3.16 }, float3{ 1.71, 3.59, -3.16 } + float3{ 0.0f, -0.342f, 0.9397f });
+        m_camera.LookAt({ 2.71, 3.59, -2.16 }, float3{ 2.71, 3.59, -2.16 } + float3{ 0.0f, -0.342f, 0.9397f });
         // m_camera.LookAt({ 1.71, 3.59, -3.16 }, { 0.53, 1.53, 1.47 });
         m_camera.SetMoveSpeed(3.f);
 
@@ -275,7 +275,7 @@ public:
         pointLight->radius = 0.5;
         
         auto pointLightNode = sceneGraph->AttachLeafNode(sceneGraph->GetRootNode(), pointLight);
-        pointLightNode->SetTranslation({ 0.53, 1.53, 1.47 });
+        pointLightNode->SetTranslation({ 1.53, 1.53, 2.47 });
 
         for (const auto& pLight : sceneGraph->GetLights())
         {
